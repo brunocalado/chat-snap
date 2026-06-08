@@ -1,7 +1,7 @@
 import {
   eventDataContainsMedia,
-  getImageQueue,
-  processDropAndPasteImages,
+  getMediaQueue,
+  processDropAndPaste,
   removeAllFromQueue,
 } from "../processors/FileProcessor.js";
 import { getUploadingStates } from "./Loader.js";
@@ -13,37 +13,46 @@ let processingDropOrPaste = false;
 
 /**
  * Build the HTML for a single queued media item.
- * @param {{imageSrc: string, name?: string, type?: string}} imageProps
+ * @param {{imageSrc: string, name?: string, type?: string}} mediaProps
  * @returns {string}
  */
-const imageTemplate = (imageProps) => {
-  const isVideo = imageProps.type?.startsWith("video/");
+const mediaTemplate = (mediaProps) => {
+  const isVideo = mediaProps.type?.startsWith("video/");
+  const isAudio = mediaProps.type?.startsWith("audio/");
+
+  if (isAudio) {
+    return `<div class="chat-snap-media-item">
+  <audio controls src="${mediaProps.imageSrc}">
+    <source src="${mediaProps.imageSrc}" type="${mediaProps.type}">
+  </audio>
+</div>`;
+  }
 
   if (isVideo) {
     const autoplay = getSetting("videoAutoplay");
 
-    return `<div class="chat-snap-image">
-  <video class="chat-snap-video" data-src="${imageProps.imageSrc}" src="${imageProps.imageSrc}"${autoplay ? " autoplay" : ""} loop muted>
-    <source src="${imageProps.imageSrc}" type="${imageProps.type}">
+    return `<div class="chat-snap-media-item">
+  <video class="chat-snap-video" data-src="${mediaProps.imageSrc}" src="${mediaProps.imageSrc}"${autoplay ? " autoplay" : ""} loop muted>
+    <source src="${mediaProps.imageSrc}" type="${mediaProps.type}">
   </video>
   <p class="chat-snap-hint">Click to open larger</p>
 </div>`;
   }
 
-  return `<div class="chat-snap-image">
-  <img data-src="${imageProps.imageSrc}" src="${imageProps.imageSrc}" alt="${imageProps.name || "Unable to load image"}" />
+  return `<div class="chat-snap-media-item">
+  <img data-src="${mediaProps.imageSrc}" src="${mediaProps.imageSrc}" alt="${mediaProps.name || "Unable to load image"}" />
   <p class="chat-snap-hint">Click to open larger</p>
 </div>`;
 };
 
 /**
  * Build the chat message body wrapping all queued media items.
- * @param {object[]} imageQueue
+ * @param {object[]} mediaQueue
  * @returns {string}
  */
-const messageTemplate = (imageQueue) => {
-  const imageTemplates = imageQueue.map((imageProps) => imageTemplate(imageProps));
-  return `<div class="chat-snap-message">${imageTemplates.join("")}</div>`;
+const messageTemplate = (mediaQueue) => {
+  const templates = mediaQueue.map((props) => mediaTemplate(props));
+  return `<div class="chat-snap-message">${templates.join("")}</div>`;
 };
 
 /**
@@ -56,8 +65,8 @@ export const preCreateChatMessageHandler = (sidebar) => (chatMessage, userOption
   if (eventIsHandlingTheMessage) return;
 
   hookIsHandlingTheMessage = true;
-  const imageQueue = getImageQueue();
-  if (!imageQueue.length) {
+  const mediaQueue = getMediaQueue();
+  if (!mediaQueue.length) {
     hookIsHandlingTheMessage = false;
     return;
   }
@@ -65,7 +74,7 @@ export const preCreateChatMessageHandler = (sidebar) => (chatMessage, userOption
   const uploadState = getUploadingStates(sidebar);
   uploadState.on();
 
-  const content = `${messageTemplate(imageQueue)}<div class="chat-snap-notes">${chatMessage.content}</div>`;
+  const content = `${messageTemplate(mediaQueue)}<div class="chat-snap-notes">${chatMessage.content}</div>`;
   chatMessage.content = content;
   chatMessage._source.content = content;
   messageOptions.chatBubble = false;
@@ -85,15 +94,15 @@ const emptyChatEventHandler = (sidebar) => async (evt) => {
   eventIsHandlingTheMessage = true;
 
   const uploadState = getUploadingStates(sidebar);
-  const imageQueue = getImageQueue();
-  if (!imageQueue.length) {
+  const mediaQueue = getMediaQueue();
+  if (!mediaQueue.length) {
     eventIsHandlingTheMessage = false;
     return;
   }
   uploadState.on();
 
   await ChatMessage.create({
-    content: messageTemplate(imageQueue),
+    content: messageTemplate(mediaQueue),
     style: CONST.CHAT_MESSAGE_STYLES.OOC,
   });
   removeAllFromQueue(sidebar);
@@ -124,7 +133,7 @@ const pastAndDropEventHandler = (sidebar) => async (evt) => {
 
   processingDropOrPaste = true;
   try {
-    await processDropAndPasteImages(eventData, sidebar);
+    await processDropAndPaste(eventData, sidebar);
   } finally {
     processingDropOrPaste = false;
   }

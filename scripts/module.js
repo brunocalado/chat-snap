@@ -42,6 +42,6 @@ Hooks.once("ready", () => {
 
 Hooks.once("setup", () => {
   Hooks.on("renderChatMessageHTML", (chatMessage, html) => {
-    if (html.querySelector(".chat-snap-image")) initChatMessage(html);
+    if (html.querySelector(".chat-snap-media-item")) initChatMessage(html);
   });
 });

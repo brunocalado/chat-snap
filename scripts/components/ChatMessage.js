@@ -10,7 +10,7 @@ const ImagePopout = foundry.applications.apps.ImagePopout;
  * @returns {void}
  */
 export const initChatMessage = (html) => {
-  const images = html.querySelectorAll(".chat-snap-image img");
+  const images = html.querySelectorAll(".chat-snap-media-item img");
   if (images.length > 0) {
     /** @param {MouseEvent} evt */
     const clickImageHandle = (evt) => {
@@ -22,7 +22,7 @@ export const initChatMessage = (html) => {
     images.forEach((img) => img.addEventListener("click", clickImageHandle));
   }
 
-  const videos = html.querySelectorAll(".chat-snap-image video");
+  const videos = html.querySelectorAll(".chat-snap-media-item video");
   if (videos.length > 0) {
     /** @param {MouseEvent} evt */
     const clickVideoHandle = (evt) => {

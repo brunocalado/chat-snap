@@ -7,10 +7,11 @@ const RESTRICTED_DOMAINS = ["static.wikia"];
 
 const DOM_PARSER = new DOMParser();
 
-let imageQueue = [];
+let mediaQueue = [];
 
 const IMAGE_EXTENSIONS = [".apng", ".avif", ".bmp", ".gif", ".jpeg", ".jpg", ".png", ".svg", ".tiff", ".webp"];
 const VIDEO_EXTENSIONS = [".webm", ".m4v", ".mp4", ".ogv"];
+const AUDIO_EXTENSIONS = [".mp3", ".wav", ".ogg", ".opus", ".flac", ".aac"];
 
 /**
  * @param {File|DataTransferItem} file
@@ -28,7 +29,10 @@ const isFileImage = (file) => IMAGE_EXTENSIONS.includes(fileExtension(file));
 const isFileVideo = (file) => VIDEO_EXTENSIONS.includes(fileExtension(file));
 
 /** @param {File|DataTransferItem} file @returns {boolean} */
-const isAllowedFile = (file) => isFileImage(file) || isFileVideo(file);
+const isFileAudio = (file) => AUDIO_EXTENSIONS.includes(fileExtension(file));
+
+/** @param {File|DataTransferItem} file @returns {boolean} */
+const isAllowedFile = (file) => isFileImage(file) || isFileVideo(file) || isFileAudio(file);
 
 /**
  * Resolve the active FilePicker implementation so host environments can substitute their own.
@@ -38,20 +42,40 @@ const getFilePicker = () =>
   foundry.applications.apps.FilePicker.implementation ?? foundry.applications.apps.FilePicker;
 
 /**
- * Build a preview tile (image or video) for the upload strip.
- * @param {{imageSrc: string, id: string, type?: string}} saveValue
+ * True when this save value represents an audio file, checking MIME type first and
+ * falling back to the filename extension so empty-type edge cases are covered.
+ * @param {{type?: string, name?: string}} saveValue
+ * @returns {boolean}
+ */
+const isSaveValueAudio = (saveValue) =>
+  saveValue.type?.startsWith("audio/") || (!!saveValue.name && isFileAudio({ name: saveValue.name }));
+
+/**
+ * Build a preview tile (image, video, or audio badge) for the upload strip.
+ * @param {{imageSrc: string, id: string, type?: string, name?: string}} saveValue
  * @returns {HTMLElement}
  */
-const createMediaPreview = ({ imageSrc, id, type }) => {
+const createMediaPreview = ({ imageSrc, id, type, name }) => {
   const isVideo = type?.startsWith("video/");
+  const isAudio = type?.startsWith("audio/") || (!!name && isFileAudio({ name }));
+
+  if (isAudio) {
+    const shortName = (name || "audio").replace(/\.[^.]+$/, "");
+    return htmlToElement(
+      `<div id="${id}" class="chat-snap-upload-area-item chat-snap-audio-preview">
+                <i class="chat-snap-remove-icon fa-regular fa-circle-xmark"></i>
+                <i class="chat-snap-audio-icon fa-solid fa-music"></i>
+                <span class="chat-snap-audio-filename">${shortName}</span>
+            </div>`,
+    );
+  }
 
   if (isVideo) {
     const autoplay = getSetting("videoAutoplay");
-
     return htmlToElement(
-      `<div id="${id}" class="chat-snap-upload-area-image">
-                <i class="chat-snap-remove-image-icon fa-regular fa-circle-xmark"></i>
-                <video class="chat-snap-image-preview" data-src="${imageSrc}" src="${imageSrc}"${autoplay ? " autoplay" : ""} loop muted>
+      `<div id="${id}" class="chat-snap-upload-area-item">
+                <i class="chat-snap-remove-icon fa-regular fa-circle-xmark"></i>
+                <video class="chat-snap-media-preview" data-src="${imageSrc}" src="${imageSrc}"${autoplay ? " autoplay" : ""} loop muted>
                     <source src="${imageSrc}" type="${type}">
                 </video>
             </div>`,
@@ -59,9 +83,9 @@ const createMediaPreview = ({ imageSrc, id, type }) => {
   }
 
   return htmlToElement(
-    `<div id="${id}" class="chat-snap-upload-area-image">
-                <i class="chat-snap-remove-image-icon fa-regular fa-circle-xmark"></i>
-                <img class="chat-snap-image-preview" data-src="${imageSrc}" src="${imageSrc}" alt="Unable to load image"/>
+    `<div id="${id}" class="chat-snap-upload-area-item">
+                <i class="chat-snap-remove-icon fa-regular fa-circle-xmark"></i>
+                <img class="chat-snap-media-preview" data-src="${imageSrc}" src="${imageSrc}" alt="Unable to load image"/>
             </div>`,
   );
 };
@@ -76,9 +100,9 @@ const createMediaPreview = ({ imageSrc, id, type }) => {
 const addEventToRemoveButton = (removeButton, saveValue, uploadArea) => {
   removeButton.addEventListener("click", () => {
     uploadArea.querySelector(`[id="${saveValue.id}"]`)?.remove();
-    imageQueue = imageQueue.filter((imgData) => saveValue.id !== imgData.id);
+    mediaQueue = mediaQueue.filter((item) => saveValue.id !== item.id);
 
-    if (!imageQueue.length) uploadArea.classList.add("hidden");
+    if (!mediaQueue.length) uploadArea.classList.add("hidden");
   });
 };
 
@@ -90,19 +114,21 @@ const addEventToRemoveButton = (removeButton, saveValue, uploadArea) => {
 const uploadFile = async (saveValue) => {
   const generateFileName = (saveValue) => {
     const { type, name, id } = saveValue;
-    let fileExtension = name?.substring(name.lastIndexOf("."), name.length);
+    let ext = name?.substring(name.lastIndexOf("."), name.length);
 
-    if (!fileExtension) {
+    if (!ext) {
       if (type?.startsWith("image/")) {
-        fileExtension = type.replace("image/", ".") || ".jpeg";
+        ext = type.replace("image/", ".") || ".jpeg";
       } else if (type?.startsWith("video/")) {
-        fileExtension = type.replace("video/", ".") || ".mp4";
+        ext = type.replace("video/", ".") || ".mp4";
+      } else if (type?.startsWith("audio/")) {
+        ext = type.replace("audio/", ".").split(";")[0] || ".mp3";
       } else {
         throw new Error("Unsupported file type for upload");
       }
     }
 
-    return `${id}${fileExtension}`;
+    return `${id}${ext}`;
   };
 
   try {
@@ -122,17 +148,45 @@ const uploadFile = async (saveValue) => {
 };
 
 /**
+ * Return true when the incoming item conflicts with what is already queued.
+ * Audio and visual media (image/video) cannot coexist in the same message.
+ * @param {boolean} incomingIsAudio
+ * @returns {boolean}
+ */
+const queueConflicts = (incomingIsAudio) => {
+  if (!mediaQueue.length) return false;
+  const queueHasAudio = mediaQueue.some((item) => isSaveValueAudio(item));
+  // incoming visual + queued audio, or incoming audio + queued visual
+  return incomingIsAudio !== queueHasAudio;
+};
+
+/**
  * Upload (if needed) and add a media item to the preview queue.
  * @param {object} saveValue  The media descriptor.
  * @param {HTMLElement} sidebar  The chat sidebar container.
  * @returns {Promise<void>}
  */
-const addImageToQueue = async (saveValue, sidebar) => {
+const addMediaToQueue = async (saveValue, sidebar) => {
   const uploadingStates = getUploadingStates(sidebar);
 
   uploadingStates.on();
   const uploadArea = sidebar.querySelector("#chat-snap-chat-upload-area");
   if (!uploadArea) return;
+
+  const incomingIsAudio = isSaveValueAudio(saveValue);
+
+  if (queueConflicts(incomingIsAudio)) {
+    ui.notifications?.warn("Chat Snap: Cannot mix audio and visual media in the same message.");
+    uploadingStates.off();
+    return;
+  }
+
+  // Audio is single-slot: silently replace any existing audio item before adding the new one.
+  if (incomingIsAudio && mediaQueue.length) {
+    const existing = mediaQueue[0];
+    uploadArea.querySelector(`[id="${existing.id}"]`)?.remove();
+    mediaQueue = [];
+  }
 
   if (saveValue.file) {
     if (!userCanUpload()) {
@@ -142,14 +196,14 @@ const addImageToQueue = async (saveValue, sidebar) => {
     saveValue.imageSrc = await uploadFile(saveValue);
   }
 
-  const imagePreview = createMediaPreview(saveValue);
-  if (!imagePreview) return;
+  const mediaPreview = createMediaPreview(saveValue);
+  if (!mediaPreview) return;
 
   uploadArea.classList.remove("hidden");
-  uploadArea.append(imagePreview);
-  imageQueue.push(saveValue);
+  uploadArea.append(mediaPreview);
+  mediaQueue.push(saveValue);
 
-  const removeButton = imagePreview.querySelector(".chat-snap-remove-image-icon");
+  const removeButton = mediaPreview.querySelector(".chat-snap-remove-icon");
   addEventToRemoveButton(removeButton, saveValue, uploadArea);
   uploadingStates.off();
 };
@@ -163,11 +217,11 @@ const addImageToQueue = async (saveValue, sidebar) => {
 const filesFileReaderHandler = (file, sidebar) => async (evt) => {
   const imageSrc = evt.target?.result;
   const saveValue = { type: file.type, name: file.name, imageSrc, id: randomString(), file };
-  await addImageToQueue(saveValue, sidebar);
+  await addMediaToQueue(saveValue, sidebar);
 };
 
 /**
- * Read and queue a list of local files selected via the upload button.
+ * Read and queue a list of local files dragged onto the chat input.
  * @param {FileList|File[]} files
  * @param {HTMLElement} sidebar
  * @returns {void}
@@ -209,9 +263,9 @@ const extractUrlFromEventData = (eventData) => {
 };
 
 /**
- * Extract allowed media files from a clipboard/drag payload's item list.
+ * Extract allowed media files from a drag payload's item list.
  * @param {DataTransfer} eventData  The clipboardData or dataTransfer payload.
- * @returns {File[]}  Allowed image/video files (empty when none).
+ * @returns {File[]}  Allowed media files (empty when none).
  */
 const extractFilesFromEventData = (eventData) => {
   if (!eventData.items) return [];
@@ -254,13 +308,13 @@ export const eventDataContainsMedia = (eventData) => {
  * @param {HTMLElement} sidebar
  * @returns {Promise<void>}
  */
-export const processDropAndPasteImages = async (eventData, sidebar) => {
+export const processDropAndPaste = async (eventData, sidebar) => {
   if (!eventData) return;
 
   const urlsFromEventDataHandler = async (urls) => {
     for (let i = 0; i < urls.length; i++) {
       const saveValue = { imageSrc: urls[i], id: randomString() };
-      await addImageToQueue(saveValue, sidebar);
+      await addMediaToQueue(saveValue, sidebar);
     }
   };
 
@@ -272,7 +326,7 @@ export const processDropAndPasteImages = async (eventData, sidebar) => {
 };
 
 /** @returns {object[]}  The current preview queue. */
-export const getImageQueue = () => imageQueue;
+export const getMediaQueue = () => mediaQueue;
 
 /**
  * Empty the preview queue and clear the strip.
@@ -280,10 +334,10 @@ export const getImageQueue = () => imageQueue;
  * @returns {void}
  */
 export const removeAllFromQueue = (sidebar) => {
-  while (imageQueue.length) {
-    const imageData = imageQueue.pop();
-    if (!imageData) continue;
-    sidebar.querySelector(`[id="${imageData.id}"]`)?.remove();
+  while (mediaQueue.length) {
+    const item = mediaQueue.pop();
+    if (!item) continue;
+    sidebar.querySelector(`[id="${item.id}"]`)?.remove();
   }
 
   sidebar.querySelector("#chat-snap-chat-upload-area")?.classList.add("hidden");

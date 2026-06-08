@@ -1,6 +1,6 @@
 # Chat Snap
 
-**Share images and videos in your Foundry VTT chat — as easily as texting a friend.**
+**Share images, videos, and audio in your Foundry VTT chat — as easily as texting a friend.**
 
 Drop a file. Paste a link. Hit Enter. Your whole table sees it.
 
@@ -10,25 +10,30 @@ Drop a file. Paste a link. Hit Enter. Your whole table sees it.
 
 ## What It Does
 
-Chat Snap adds image and video sharing directly to your game chat. No external tools, no copying links manually — just drag, drop, and post.
+Chat Snap adds image, video, and audio sharing directly to your game chat. No external tools, no copying links manually — just drag, drop, and post.
 
-Whether you're a GM setting the atmosphere with a dramatic scene illustration, or a player sharing a portrait of a new character, Chat Snap keeps everyone at the table in sync, visually.
+Whether you're a GM setting the atmosphere with a dramatic scene illustration, a player sharing a portrait of a new character, or anyone at the table sending a sound clip to complement the moment, Chat Snap keeps everyone in sync.
 
 ---
 
 ## Features
 
 ### Drag & Drop
-Drag any image or video file from your computer straight onto the chat box. A preview appears before you send — remove anything you don't want, add a caption, and post when ready.
+Drag any image, video, or audio file from your computer straight onto the chat box. A preview appears before you send — remove it if you change your mind, add a caption, and post when ready.
 
 ### Paste to Post
 Copy an image URL from the web and paste it into the chat. The module detects it automatically and queues it as a preview. Works with images copied from web pages too.
 
 ### Preview Before Sending
-Queued media shows up as thumbnails above the chat input. You can remove individual items before posting, or mix media with a text message — all sent together in one click.
+Queued media shows up as thumbnails (or an audio badge) above the chat input. You can remove items before posting, or mix media with a text message — all sent together in one click.
 
 ### Click to Enlarge
 Any image in chat can be clicked to open a larger view. Videos embed with full playback controls and can be opened fullscreen.
+
+### Audio Playback
+Audio files embed directly in chat with native browser playback controls. Playback is client-side only — each player controls their own volume and timing independently, so playing a clip only affects the client that pressed play.
+
+> **Note:** Only one audio file can be queued per message. Audio and visual media (images/videos) cannot be mixed in the same message.
 
 ## Supported Formats
 
@@ -36,6 +41,7 @@ Any image in chat can be clicked to open a larger view. Videos embed with full p
 |--------|---------|
 | Images | APNG, AVIF, BMP, GIF, JPEG, JPG, PNG, SVG, TIFF, WEBP |
 | Videos | MP4, WEBM, M4V, OGV |
+| Audio  | MP3, WAV, OGG, OPUS, FLAC, AAC |
 
 ---
 

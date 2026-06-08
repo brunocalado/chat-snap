@@ -35,12 +35,16 @@
   }
 }
 
-.chat-snap-image img {
+.chat-snap-media-item img {
   cursor: pointer;
 
   &:hover {
     box-shadow: 0 2px 12px 0 var(--color-shadow-primary);
   }
+}
+
+.chat-snap-media-item audio {
+  width: 100%;
 }
 
 .chat-snap-video {
@@ -86,7 +90,7 @@
   margin-right: -12px;
 }
 
-.chat-snap-upload-area-image {
+.chat-snap-upload-area-item {
   display: flex;
   position: relative;
   justify-content: center;
@@ -97,24 +101,48 @@
   margin: 3px;
 }
 
-.chat-snap-image-preview {
+.chat-snap-media-preview {
   height: 100px;
   width: 100px;
   object-fit: cover;
 }
 
-.chat-snap-remove-image-icon {
-  --chat-snap-remove-icon: #fff;
+.chat-snap-remove-icon {
+  --chat-snap-remove-icon-color: #fff;
 
   position: absolute;
   top: 3px;
   right: 0;
   z-index: 500;
   font-size: 20px;
-  color: var(--chat-snap-remove-icon);
+  color: var(--chat-snap-remove-icon-color);
   cursor: pointer;
 
   &:hover {
     text-shadow: 0 0 8px var(--color-shadow-primary);
   }
+}
+
+/* Audio preview badge in the upload strip. */
+.chat-snap-audio-preview {
+  flex-direction: column;
+  gap: 6px;
+  background: #1a1a2e;
+  border-radius: 4px;
+  padding: 8px;
+  color: var(--color-text-primary);
+}
+
+.chat-snap-audio-icon {
+  font-size: 2em;
+  opacity: 0.85;
+}
+
+.chat-snap-audio-filename {
+  font-size: 0.65em;
+  max-width: 90px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
 }

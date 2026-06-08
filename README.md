@@ -1,6 +1,6 @@
 # Chat Snap
 
-**Share images, videos, and audio in your Foundry VTT chat — as easily as texting a friend.**
+**Share images, videos, audio, and PDFs in your Foundry VTT chat — as easily as texting a friend.**
 
 Drop a file. Paste a link. Hit Enter. Your whole table sees it.
 
@@ -33,7 +33,10 @@ Any image in chat can be clicked to open a larger view. Videos embed with full p
 ### Audio Playback
 Audio files embed directly in chat with native browser playback controls. Playback is client-side only — each player controls their own volume and timing independently, so playing a clip only affects the client that pressed play.
 
-> **Note:** Only one audio file can be queued per message. Audio and visual media (images/videos) cannot be mixed in the same message.
+### PDF Sharing
+Drag a PDF onto the chat input to share it. A badge (PDF icon + filename) appears in the upload strip before sending, and again in the posted message. Click the badge to open the PDF in a viewer dialog, which includes an **Open in new tab** button as fallback. The viewer fetches the file with your session credentials, so it works reliably for both GMs and players across browsers.
+
+> **Note:** Only one audio or PDF file can be queued per message. Audio, PDFs, and visual media (images/videos) cannot be mixed in the same message.
 
 ## Supported Formats
 
@@ -42,6 +45,7 @@ Audio files embed directly in chat with native browser playback controls. Playba
 | Images | APNG, AVIF, BMP, GIF, JPEG, JPG, PNG, SVG, TIFF, WEBP |
 | Videos | MP4, WEBM, M4V, OGV |
 | Audio  | MP3, WAV, OGG, OPUS, FLAC, AAC |
+| PDF    | PDF |
 
 ---
 

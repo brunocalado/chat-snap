@@ -1,4 +1,5 @@
 import MediaPopout from "../share-media/MediaPopout.js";
+import PDFPopout from "../share-media/PDFPopout.js";
 
 const ImagePopout = foundry.applications.apps.ImagePopout;
 
@@ -97,5 +98,25 @@ export const initChatMessage = (html) => {
       video.addEventListener("click", clickVideoHandle);
       video.addEventListener("dblclick", dblClickVideoHandle);
     });
+  }
+
+  const pdfItems = html.querySelectorAll(".chat-snap-pdf-item");
+  if (pdfItems.length > 0) {
+    /** @param {MouseEvent} evt */
+    const clickPdfHandle = (evt) => {
+      const target = /** @type {HTMLElement} */ (evt.currentTarget);
+      const src = target.dataset.pdfSrc;
+      const name = target.dataset.pdfName ?? "PDF";
+
+      if (!navigator.pdfViewerEnabled) {
+        ui.notifications?.warn("Chat Snap: Your browser does not support PDF viewing. Opening in a new tab instead.");
+        window.open(src, "_blank");
+        return;
+      }
+
+      new PDFPopout(src, name).render(true);
+    };
+
+    pdfItems.forEach((el) => el.addEventListener("click", clickPdfHandle));
   }
 };

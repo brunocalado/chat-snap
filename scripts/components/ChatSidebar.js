@@ -19,12 +19,25 @@ let processingDropOrPaste = false;
 const mediaTemplate = (mediaProps) => {
   const isVideo = mediaProps.type?.startsWith("video/");
   const isAudio = mediaProps.type?.startsWith("audio/");
+  const isPdf =
+    mediaProps.type === "application/pdf" || mediaProps.name?.toLowerCase().endsWith(".pdf");
 
   if (isAudio) {
     return `<div class="chat-snap-media-item">
   <audio controls src="${mediaProps.imageSrc}">
     <source src="${mediaProps.imageSrc}" type="${mediaProps.type}">
   </audio>
+</div>`;
+  }
+
+  if (isPdf) {
+    const shortName = (mediaProps.name || "document").replace(/\.[^.]+$/, "");
+    return `<div class="chat-snap-media-item chat-snap-pdf-item"
+     data-pdf-src="${mediaProps.imageSrc}"
+     data-pdf-name="${shortName}">
+  <i class="fa-regular fa-file-pdf"></i>
+  <span class="chat-snap-pdf-filename">${shortName}</span>
+  <p class="chat-snap-hint">Click to view</p>
 </div>`;
   }
 

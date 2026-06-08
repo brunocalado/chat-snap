@@ -13,6 +13,7 @@ let mediaQueue = [];
 const IMAGE_EXTENSIONS = [".apng", ".avif", ".bmp", ".gif", ".jpeg", ".jpg", ".png", ".svg", ".tiff", ".webp"];
 const VIDEO_EXTENSIONS = [".webm", ".m4v", ".mp4", ".ogv"];
 const AUDIO_EXTENSIONS = [".mp3", ".wav", ".ogg", ".opus", ".flac", ".aac"];
+const PDF_EXTENSIONS = [".pdf"];
 
 /**
  * @param {File|DataTransferItem} file
@@ -33,7 +34,10 @@ const isFileVideo = (file) => VIDEO_EXTENSIONS.includes(fileExtension(file));
 const isFileAudio = (file) => AUDIO_EXTENSIONS.includes(fileExtension(file));
 
 /** @param {File|DataTransferItem} file @returns {boolean} */
-const isAllowedFile = (file) => isFileImage(file) || isFileVideo(file) || isFileAudio(file);
+const isFilePdf = (file) => PDF_EXTENSIONS.includes(fileExtension(file));
+
+/** @param {File|DataTransferItem} file @returns {boolean} */
+const isAllowedFile = (file) => isFileImage(file) || isFileVideo(file) || isFileAudio(file) || isFilePdf(file);
 
 /**
  * Resolve the active FilePicker implementation so host environments can substitute their own.
@@ -52,13 +56,33 @@ const isSaveValueAudio = (saveValue) =>
   saveValue.type?.startsWith("audio/") || (!!saveValue.name && isFileAudio({ name: saveValue.name }));
 
 /**
- * Build a preview tile (image, video, or audio badge) for the upload strip.
+ * True when this save value represents a PDF file.
+ * @param {{type?: string, name?: string}} saveValue
+ * @returns {boolean}
+ */
+const isSaveValuePdf = (saveValue) =>
+  saveValue.type === "application/pdf" || (!!saveValue.name && isFilePdf({ name: saveValue.name }));
+
+/**
+ * Classify a queued item into one of three mutually-exclusive media categories.
+ * @param {{type?: string, name?: string}} saveValue
+ * @returns {"audio"|"pdf"|"visual"}
+ */
+const getMediaType = (saveValue) => {
+  if (isSaveValueAudio(saveValue)) return "audio";
+  if (isSaveValuePdf(saveValue)) return "pdf";
+  return "visual";
+};
+
+/**
+ * Build a preview tile (image, video, audio badge, or PDF badge) for the upload strip.
  * @param {{imageSrc: string, id: string, type?: string, name?: string}} saveValue
  * @returns {HTMLElement}
  */
 const createMediaPreview = ({ imageSrc, id, type, name }) => {
   const isVideo = type?.startsWith("video/");
   const isAudio = type?.startsWith("audio/") || (!!name && isFileAudio({ name }));
+  const isPdf = type === "application/pdf" || (!!name && isFilePdf({ name }));
 
   if (isAudio) {
     const shortName = (name || "audio").replace(/\.[^.]+$/, "");
@@ -67,6 +91,17 @@ const createMediaPreview = ({ imageSrc, id, type, name }) => {
                 <i class="chat-snap-remove-icon fa-regular fa-circle-xmark"></i>
                 <i class="chat-snap-audio-icon fa-solid fa-music"></i>
                 <span class="chat-snap-audio-filename">${shortName}</span>
+            </div>`,
+    );
+  }
+
+  if (isPdf) {
+    const shortName = (name || "document").replace(/\.[^.]+$/, "");
+    return htmlToElement(
+      `<div id="${id}" class="chat-snap-upload-area-item chat-snap-pdf-preview">
+                <i class="chat-snap-remove-icon fa-regular fa-circle-xmark"></i>
+                <i class="chat-snap-pdf-icon fa-regular fa-file-pdf"></i>
+                <span class="chat-snap-pdf-filename">${shortName}</span>
             </div>`,
     );
   }
@@ -125,6 +160,8 @@ const uploadFile = async (saveValue) => {
         ext = type.replace("video/", ".") || ".mp4";
       } else if (type?.startsWith("audio/")) {
         ext = type.replace("audio/", ".").split(";")[0] || ".mp3";
+      } else if (type === "application/pdf") {
+        ext = ".pdf";
       } else {
         throw new Error("Unsupported file type for upload");
       }
@@ -159,16 +196,14 @@ const uploadFile = async (saveValue) => {
 };
 
 /**
- * Return true when the incoming item conflicts with what is already queued.
- * Audio and visual media (image/video) cannot coexist in the same message.
- * @param {boolean} incomingIsAudio
+ * Return true when the incoming item's media type differs from what is already queued.
+ * Audio, PDF, and visual media (image/video) cannot coexist in the same message.
+ * @param {"audio"|"pdf"|"visual"} incomingType
  * @returns {boolean}
  */
-const queueConflicts = (incomingIsAudio) => {
+const queueConflicts = (incomingType) => {
   if (!mediaQueue.length) return false;
-  const queueHasAudio = mediaQueue.some((item) => isSaveValueAudio(item));
-  // incoming visual + queued audio, or incoming audio + queued visual
-  return incomingIsAudio !== queueHasAudio;
+  return getMediaType(mediaQueue[0]) !== incomingType;
 };
 
 /**
@@ -184,19 +219,20 @@ const addMediaToQueue = async (saveValue, sidebar) => {
   const uploadArea = sidebar.querySelector("#chat-snap-chat-upload-area");
   if (!uploadArea) return;
 
-  const incomingIsAudio = isSaveValueAudio(saveValue);
+  const incomingType = getMediaType(saveValue);
+  const isSingleSlot = incomingType === "audio" || incomingType === "pdf";
 
-  if (queueConflicts(incomingIsAudio)) {
-    ui.notifications?.warn("Chat Snap: Cannot mix audio and visual media in the same message.");
-    uploadingStates.off();
-    return;
-  }
-
-  // Audio is single-slot: silently replace any existing audio item before adding the new one.
-  if (incomingIsAudio && mediaQueue.length) {
+  // Single-slot types silently replace an existing item of the same type.
+  if (isSingleSlot && mediaQueue.length && getMediaType(mediaQueue[0]) === incomingType) {
     const existing = mediaQueue[0];
     uploadArea.querySelector(`[id="${existing.id}"]`)?.remove();
     mediaQueue = [];
+  }
+
+  if (queueConflicts(incomingType)) {
+    ui.notifications?.warn("Chat Snap: Cannot mix audio, PDF, and visual media in the same message.");
+    uploadingStates.off();
+    return;
   }
 
   if (saveValue.file) {

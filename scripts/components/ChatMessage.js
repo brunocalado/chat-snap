@@ -1,4 +1,4 @@
-import MediaPopout from "../share-media/MediaPopout.js";
+import VideoPopout from "../share-media/VideoPopout.js";
 import PDFPopout from "../share-media/PDFPopout.js";
 
 const ImagePopout = foundry.applications.apps.ImagePopout;
@@ -65,10 +65,11 @@ export const initChatMessage = (html) => {
       }
 
       // Delay the popout so a following dblclick (fullscreen) can cancel it.
-      const clickTimeout = setTimeout(() => {
+      const clickTimeout = setTimeout(async () => {
         if (!target.dataset.doubleClickFlag) {
           const src = target.dataset.src ?? target.src;
-          new MediaPopout(src, { editable: false, shareable: true }).render(true);
+          const popout = await VideoPopout.create(src);
+          popout.render(true);
         }
         delete target.dataset.clickTimeout;
         delete target.dataset.doubleClickFlag;

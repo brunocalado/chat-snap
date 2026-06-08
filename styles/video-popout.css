@@ -1,0 +1,13 @@
+/*
+ * Styles for the VideoPopout application. Scoped under `.chat-snap`, the class added to the
+ * application root via VideoPopout.DEFAULT_OPTIONS.classes.
+ */
+.chat-snap {
+  & video {
+    display: block;
+    width: 100%;
+    min-width: 240px;
+    min-height: 160px;
+    object-fit: contain;
+  }
+}

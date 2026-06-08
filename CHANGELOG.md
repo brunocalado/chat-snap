@@ -1,6 +1,10 @@
 # 0.0.2
 
+### Changed
+- Video popout is now a dedicated `VideoPopout` class (replacing the `MediaPopout` path for videos), giving full control over window sizing independent of the core `ImagePopout` logic.
+
 ### Added
+- Video popout now opens sized to match the video's aspect ratio. A 9:16 portrait video opens a tall window; a 16:9 landscape video opens a wide one — no manual resizing needed. Dimensions are pre-fetched before the window renders, so there is no resize flash on open.
 - PDF support: drag & drop `.pdf` files onto the chat input to share them. A PDF badge (file icon + filename) appears in the upload strip before sending and in the posted message. Clicking the badge opens an inline PDF viewer dialog with an **Open in new tab** fallback button. The viewer fetches the file with session credentials and uses a Blob URL for reliable rendering across browsers and user roles.
 - PDF follows the same single-slot rule as audio: only one PDF per message, and PDFs cannot be mixed with images, videos, or audio in the same message.
 

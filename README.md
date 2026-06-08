@@ -75,6 +75,7 @@ Check the roles you want to allow, then save.
 | Setting | Who Can Change It | What It Does |
 |---|---|---|
 | Upload Location | GM only | Folder where uploaded media files are stored on the server. Default: `uploaded-chat-snap`. |
+| Organize uploads by date | GM only | Groups uploaded files into daily subfolders (e.g. `uploaded-chat-snap/2026-06-08/`). On by default. Disable on hosting platforms where folder creation behaves differently, such as The Forge. |
 | Video Autoplay | GM only | Whether videos play automatically when they appear in chat. On by default. |
 | Setup Complete | GM only | Hides the first-run permissions dialog. Uncheck to show it again. |
 

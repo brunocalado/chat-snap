@@ -1,7 +1,8 @@
 import { ORIGIN_FOLDER, randomString, userCanUpload } from "../utils/Utils.js";
 import { htmlToElement } from "../helpers.js";
 import { getUploadingStates } from "../components/Loader.js";
-import { getSetting } from "../utils/Settings.js";
+import { getSetting, createUploadFolder } from "../utils/Settings.js";
+import { SETTING_USE_DATE_FOLDERS } from "../constants.js";
 
 const RESTRICTED_DOMAINS = ["static.wikia"];
 
@@ -107,7 +108,8 @@ const addEventToRemoveButton = (removeButton, saveValue, uploadArea) => {
 };
 
 /**
- * Upload a local file to the configured location.
+ * Upload a local file to the configured location, organized into a date subfolder
+ * when the useDateFolders setting is enabled.
  * @param {{type?: string, name?: string, id: string, imageSrc: string, file: File}} saveValue
  * @returns {Promise<string>}  The uploaded path, or the original source on failure.
  */
@@ -136,8 +138,17 @@ const uploadFile = async (saveValue) => {
     const fileToUpload = new File([saveValue.file], newName, { type: saveValue.type });
 
     const uploadLocation = getSetting("uploadLocation");
+    const useDateFolders = getSetting(SETTING_USE_DATE_FOLDERS);
+
+    let effectiveLocation = uploadLocation;
+    if (useDateFolders) {
+      const dateFolder = new Date().toISOString().slice(0, 10);
+      effectiveLocation = `${uploadLocation}/${dateFolder}`;
+      await createUploadFolder(effectiveLocation);
+    }
+
     const FilePicker = getFilePicker();
-    const fileLocation = await FilePicker.upload(ORIGIN_FOLDER, uploadLocation, fileToUpload, {}, { notify: false });
+    const fileLocation = await FilePicker.upload(ORIGIN_FOLDER, effectiveLocation, fileToUpload, {}, { notify: false });
 
     if (!fileLocation || !fileLocation.path) return saveValue.imageSrc;
     return fileLocation.path;

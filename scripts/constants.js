@@ -11,3 +11,10 @@ export const MODULE_ID = "chat-snap";
  * @type {string}
  */
 export const SETTING_SETUP_COMPLETE = "setupComplete";
+
+/**
+ * Setting key for toggling date-based subfolder organization for uploaded files.
+ * Used in Settings.js (registration) and FileProcessor.js (upload logic).
+ * @type {string}
+ */
+export const SETTING_USE_DATE_FOLDERS = "useDateFolders";

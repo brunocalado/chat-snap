@@ -1,4 +1,4 @@
-import { MODULE_ID, SETTING_SETUP_COMPLETE } from "../constants.js";
+import { MODULE_ID, SETTING_SETUP_COMPLETE, SETTING_USE_DATE_FOLDERS } from "../constants.js";
 import { ORIGIN_FOLDER } from "./Utils.js";
 
 /**
@@ -57,6 +57,18 @@ export const getSettings = () => [
         await createUploadFolder(location);
         if (shouldChangeLocation) await setSetting("uploadLocation", location);
       },
+    },
+  },
+  {
+    key: SETTING_USE_DATE_FOLDERS,
+    options: {
+      name: "Organize uploads by date",
+      hint: "Upload files into daily subfolders (e.g. uploaded-chat-snap/2026-06-08/). Disable on hosting platforms where folder creation behaves differently (e.g. The Forge).",
+      type: Boolean,
+      default: true,
+      scope: "world",
+      config: true,
+      restricted: true,
     },
   },
   {

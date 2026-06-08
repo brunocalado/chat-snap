@@ -1,0 +1,40 @@
+/*
+ * Styles for the SetupDialog application. Scoped under `.chat-snap`, the class added to the
+ * application root via SetupDialog.DEFAULT_OPTIONS.classes.
+ */
+.chat-snap {
+  .setup-description {
+    line-height: 1.5;
+    margin-bottom: 1rem;
+
+    p {
+      margin-bottom: 0.4em;
+    }
+
+    .setup-note {
+      color: var(--color-text-secondary);
+      font-size: var(--font-size-13);
+    }
+  }
+
+  .setup-roles {
+    border: 1px solid var(--color-border-light-tertiary);
+    border-radius: 4px;
+    padding: 0.5rem 1rem 0.75rem;
+    margin-bottom: 1rem;
+
+    legend {
+      padding: 0 0.25rem;
+      color: var(--color-text-secondary);
+      font-size: var(--font-size-13);
+    }
+
+    .setup-role-option {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.2rem 0;
+      cursor: pointer;
+    }
+  }
+}

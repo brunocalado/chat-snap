@@ -1,0 +1,33 @@
+<form class="flexcol" autocomplete="off">
+  <div class="setup-description">
+    <p>
+      Non-GM users need the <strong>Upload Files</strong> permission to send images and videos
+      in chat. Select which roles should receive this permission and click
+      <strong>Grant Permissions</strong>.
+    </p>
+    <p class="setup-note">
+      You can re-open this dialog by unchecking <em>Setup complete</em> in the module settings.
+    </p>
+  </div>
+
+  <fieldset class="setup-roles">
+    <legend>Grant upload permission to</legend>
+    <label class="setup-role-option">
+      <input type="checkbox" name="grantPlayer" {{#if playerChecked}}checked{{/if}}>
+      Player
+    </label>
+    <label class="setup-role-option">
+      <input type="checkbox" name="grantTrusted" {{#if trustedChecked}}checked{{/if}}>
+      Trusted Player
+    </label>
+  </fieldset>
+
+  <div class="form-footer flexrow">
+    <button type="button" data-action="confirm">
+      <i class="fa-solid fa-shield-halved"></i> Grant Permissions
+    </button>
+    <button type="button" data-action="skip">
+      <i class="fa-solid fa-forward"></i> Skip
+    </button>
+  </div>
+</form>

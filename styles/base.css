@@ -1,0 +1,120 @@
+/*
+ * Module-wide styles for chat-snap. This module injects its UI directly into Foundry's core
+ * chat sidebar, so most selectors target module-owned ids/classes (all prefixed `chat-snap-`)
+ * living inside core chat elements rather than a single module-scoped root. The only core
+ * element restyled directly is `#chat-form` (it must be a positioning context for the spinner).
+ */
+
+/* Positioning anchor for the absolutely-positioned upload spinner. */
+#chat-form {
+  position: relative;
+}
+
+#chat-snap-spinner {
+  --chat-snap-spinner-track: #b2c3ff;
+  --chat-snap-spinner-head: #5d49ff;
+
+  z-index: 1;
+  width: 50px;
+  height: 50px;
+  border: 5px solid var(--chat-snap-spinner-track);
+  border-top-color: var(--chat-snap-spinner-head);
+  border-radius: 50%;
+  position: absolute;
+  left: 40%;
+  bottom: 20%;
+  animation: chat-snap-spin 2s linear infinite;
+}
+
+@keyframes chat-snap-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.chat-snap-image img {
+  cursor: pointer;
+
+  &:hover {
+    box-shadow: 0 2px 12px 0 var(--color-shadow-primary);
+  }
+}
+
+.chat-snap-video {
+  width: 100%;
+  width: -webkit-fill-available;
+}
+
+.chat-snap-hint {
+  font-size: 0.7em;
+  text-align: center;
+  margin: 2px 0 0;
+  opacity: 0.6;
+  font-style: italic;
+  pointer-events: none;
+}
+
+#chat-snap-chat-upload-area {
+  --chat-snap-upload-bg: #000;
+  --chat-snap-scroll-thumb: #7d7d7d;
+
+  flex: unset;
+  max-height: fit-content;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-content: center;
+  align-items: center;
+  overflow-y: auto;
+  pointer-events: all;
+  background: var(--chat-snap-upload-bg);
+  border-radius: 4px;
+  margin-bottom: 4px;
+  scrollbar-color: var(--chat-snap-scroll-thumb) var(--chat-snap-upload-bg);
+}
+
+/* Expanded sidebar: stack previews vertically alongside the chat column. */
+#ui-right:has(#sidebar-content.expanded) #ui-right-column-1 #chat-snap-chat-upload-area {
+  flex-direction: column;
+  align-items: end;
+  max-height: 94dvh;
+  width: fit-content;
+  justify-self: end;
+  margin-right: -12px;
+}
+
+.chat-snap-upload-area-image {
+  display: flex;
+  position: relative;
+  justify-content: center;
+  align-items: center;
+  align-content: center;
+  min-height: 100px;
+  min-width: 100px;
+  margin: 3px;
+}
+
+.chat-snap-image-preview {
+  height: 100px;
+  width: 100px;
+  object-fit: cover;
+}
+
+.chat-snap-remove-image-icon {
+  --chat-snap-remove-icon: #fff;
+
+  position: absolute;
+  top: 3px;
+  right: 0;
+  z-index: 500;
+  font-size: 20px;
+  color: var(--chat-snap-remove-icon);
+  cursor: pointer;
+
+  &:hover {
+    text-shadow: 0 0 8px var(--color-shadow-primary);
+  }
+}

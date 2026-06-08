@@ -1,0 +1,10 @@
+/*
+ * Styles for the MediaPopout application. Scoped under `.chat-snap`, the class added to the
+ * application root via MediaPopout.DEFAULT_OPTIONS.classes, so these rules never leak to the
+ * core ImagePopout or other applications.
+ */
+.chat-snap {
+  & video {
+    width: 100%;
+  }
+}

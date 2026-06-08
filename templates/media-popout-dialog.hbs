@@ -1,0 +1,11 @@
+<form class="flexcol" autocomplete="off">
+    {{#if isVideo}}
+        <video {{#if autoplay}}autoplay{{/if}} loop controls>
+            <source src="{{video}}" type="{{videoType}}">
+        </video>
+    {{else}}
+        <figure class="flexcol">
+            <img src="{{image}}" alt="{{altText}}" />
+        </figure>
+    {{/if}}
+</form>

@@ -1,5 +1,8 @@
 # 0.0.2
 
+### Fixed
+- Pasting a plain image/video/audio/PDF URL (e.g. `https://example.com/image.png`) now correctly queues a media preview instead of inserting the URL as plain text.
+
 ### Changed
 - Video popout is now a dedicated `VideoPopout` class (replacing the `MediaPopout` path for videos), giving full control over window sizing independent of the core `ImagePopout` logic.
 

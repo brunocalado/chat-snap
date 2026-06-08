@@ -310,6 +310,33 @@ const extractUrlFromEventData = (eventData) => {
 };
 
 /**
+ * Extract a media URL from the clipboard's plain-text representation.
+ * Handles the case where the user pastes a bare URL string with no HTML wrapping,
+ * e.g. pasting a direct image link from an address bar or chat.
+ * @param {DataTransfer} eventData  The clipboardData or dataTransfer payload.
+ * @returns {string[]|null}  The URL in a single-element array, or null when not a media URL.
+ */
+const extractPlainTextUrlFromEventData = (eventData) => {
+  try {
+    const text = eventData.getData("text/plain")?.trim();
+    if (!text || text.includes("\n")) return null;
+
+    let url;
+    try { url = new URL(text); } catch { return null; }
+    if (url.protocol !== "http:" && url.protocol !== "https:") return null;
+
+    const pathname = url.pathname.toLowerCase();
+    const ALL_EXTENSIONS = [...IMAGE_EXTENSIONS, ...VIDEO_EXTENSIONS, ...AUDIO_EXTENSIONS, ...PDF_EXTENSIONS];
+    if (!ALL_EXTENSIONS.some(ext => pathname.endsWith(ext))) return null;
+
+    return [text];
+  } catch (error) {
+    console.error("Chat Snap: Error extracting plain text URL:", error);
+    return null;
+  }
+};
+
+/**
  * Extract allowed media files from a drag payload's item list.
  * @param {DataTransfer} eventData  The clipboardData or dataTransfer payload.
  * @returns {File[]}  Allowed media files (empty when none).
@@ -343,7 +370,7 @@ const extractFilesFromEventData = (eventData) => {
 export const eventDataContainsMedia = (eventData) => {
   if (!eventData) return false;
 
-  const urls = extractUrlFromEventData(eventData);
+  const urls = extractUrlFromEventData(eventData) ?? extractPlainTextUrlFromEventData(eventData);
   if (urls && urls.length) return true;
 
   return extractFilesFromEventData(eventData).length > 0;
@@ -367,6 +394,16 @@ export const processDropAndPaste = async (eventData, sidebar) => {
 
   const urls = extractUrlFromEventData(eventData);
   if (urls && urls.length) return await urlsFromEventDataHandler(urls);
+
+  const plainUrls = extractPlainTextUrlFromEventData(eventData);
+  if (plainUrls && plainUrls.length) {
+    const filename = new URL(plainUrls[0]).pathname.split("/").pop();
+    for (const url of plainUrls) {
+      const saveValue = { imageSrc: url, id: randomString(), name: filename };
+      await addMediaToQueue(saveValue, sidebar);
+    }
+    return;
+  }
 
   const filesExtracted = extractFilesFromEventData(eventData);
   if (filesExtracted && filesExtracted.length) return await processFiles(filesExtracted, sidebar);

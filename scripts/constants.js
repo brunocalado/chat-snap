@@ -25,3 +25,10 @@ export const SETTING_USE_DATE_FOLDERS = "useDateFolders";
  * @type {string}
  */
 export const SETTING_SHOW_DOWNLOAD_BUTTON = "showDownloadButton";
+
+/**
+ * Setting key for the per-file upload size cap in megabytes.
+ * Used in Settings.js (registration) and FileProcessor.js (pre-upload guard).
+ * @type {string}
+ */
+export const SETTING_MAX_FILE_SIZE_MB = "maxFileSizeMb";

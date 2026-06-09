@@ -96,6 +96,7 @@ Check the roles you want to allow, then save.
 | Organize uploads by date | GM only | Groups uploaded files into daily subfolders (e.g. `uploaded-chat-snap/2026-06-08/`). On by default. Disable on hosting platforms where folder creation behaves differently, such as The Forge. |
 | Video Autoplay | GM only | Whether videos play automatically when they appear in chat. On by default. |
 | Show download button on chat media | GM only | Displays a **Download** link below every media item (images, videos, audio, PDFs, text files) in chat. On by default. |
+| Max file size (MB) | GM only | Files larger than this limit are silently rejected before upload. Accepts 1–1000 MB. Default: 120 MB. |
 | Setup Complete | GM only | Hides the first-run permissions dialog. Uncheck to show it again. |
 
 ---

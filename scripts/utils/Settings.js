@@ -1,4 +1,4 @@
-import { MODULE_ID, SETTING_SETUP_COMPLETE, SETTING_USE_DATE_FOLDERS, SETTING_SHOW_DOWNLOAD_BUTTON } from "../constants.js";
+import { MODULE_ID, SETTING_SETUP_COMPLETE, SETTING_USE_DATE_FOLDERS, SETTING_SHOW_DOWNLOAD_BUTTON, SETTING_MAX_FILE_SIZE_MB } from "../constants.js";
 import { ORIGIN_FOLDER } from "./Utils.js";
 
 /**
@@ -90,6 +90,19 @@ export const getSettings = () => [
       hint: "Display a download button alongside media items sent through Chat Snap.",
       type: Boolean,
       default: true,
+      scope: "world",
+      config: true,
+      restricted: true,
+    },
+  },
+  {
+    key: SETTING_MAX_FILE_SIZE_MB,
+    options: {
+      name: "Max file size (MB)",
+      hint: "Files larger than this limit are rejected before upload. Range: 1–1000 MB.",
+      type: Number,
+      default: 120,
+      range: { min: 1, max: 1000, step: 1 },
       scope: "world",
       config: true,
       restricted: true,

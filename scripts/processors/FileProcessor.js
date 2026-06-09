@@ -2,7 +2,7 @@ import { ORIGIN_FOLDER, randomString, userCanUpload } from "../utils/Utils.js";
 import { htmlToElement } from "../helpers.js";
 import { anchorUploadArea } from "../components/UploadArea.js";
 import { getSetting, createUploadFolder } from "../utils/Settings.js";
-import { MODULE_ID, SETTING_USE_DATE_FOLDERS } from "../constants.js";
+import { MODULE_ID, SETTING_USE_DATE_FOLDERS, SETTING_MAX_FILE_SIZE_MB } from "../constants.js";
 
 const RESTRICTED_DOMAINS = ["static.wikia"];
 
@@ -417,10 +417,17 @@ const readAndQueueFile = (file) =>
  * @returns {Promise<void>}
  */
 export const processFiles = async (files) => {
+  const maxBytes = getSetting(SETTING_MAX_FILE_SIZE_MB) * 1024 * 1024;
   const reads = [];
   for (const file of files) {
     if (!isAllowedFile(file)) {
       console.warn(`Chat Snap: File type not allowed: ${file.name}`);
+      continue;
+    }
+    if (file.size > maxBytes) {
+      ui.notifications?.warn(
+        `Chat Snap: "${file.name}" exceeds the ${getSetting(SETTING_MAX_FILE_SIZE_MB)} MB limit and was not uploaded.`
+      );
       continue;
     }
     reads.push(readAndQueueFile(file));

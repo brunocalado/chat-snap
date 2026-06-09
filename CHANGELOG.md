@@ -1,3 +1,7 @@
+# 0.0.3
+
+- improved loading indicator
+
 # 0.0.2
 
 ### Fixed

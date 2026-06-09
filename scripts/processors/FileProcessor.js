@@ -1,6 +1,5 @@
 import { ORIGIN_FOLDER, randomString, userCanUpload } from "../utils/Utils.js";
 import { htmlToElement } from "../helpers.js";
-import { getUploadingStates } from "../components/Loader.js";
 import { getSetting, createUploadFolder } from "../utils/Settings.js";
 import { MODULE_ID, SETTING_USE_DATE_FOLDERS } from "../constants.js";
 
@@ -235,15 +234,14 @@ const queueConflicts = (incomingType) => {
 };
 
 /**
- * Upload (if needed) and add a media item to the preview queue.
+ * Upload (if needed) and add a media item to the preview queue. The loading-bar lifecycle is owned
+ * by the caller (the drop/paste handler), not this function, so the indicator can show from the very
+ * start of the gesture and stay up until every queued item finishes.
  * @param {object} saveValue  The media descriptor.
  * @param {HTMLElement} sidebar  The chat sidebar container.
  * @returns {Promise<void>}
  */
 const addMediaToQueue = async (saveValue, sidebar) => {
-  const uploadingStates = getUploadingStates(sidebar);
-
-  uploadingStates.on();
   const uploadArea = sidebar.querySelector("#chat-snap-chat-upload-area");
   if (!uploadArea) return;
 
@@ -259,15 +257,11 @@ const addMediaToQueue = async (saveValue, sidebar) => {
 
   if (queueConflicts(incomingType)) {
     ui.notifications?.warn("Chat Snap: Cannot mix audio, PDF, and visual media in the same message.");
-    uploadingStates.off();
     return;
   }
 
   if (saveValue.file) {
-    if (!userCanUpload()) {
-      uploadingStates.off();
-      return;
-    }
+    if (!userCanUpload()) return;
     saveValue.imageSrc = await uploadFile(saveValue);
   }
 
@@ -280,39 +274,48 @@ const addMediaToQueue = async (saveValue, sidebar) => {
 
   const removeButton = mediaPreview.querySelector(".chat-snap-remove-icon");
   addEventToRemoveButton(removeButton, saveValue, uploadArea);
-  uploadingStates.off();
 };
 
 /**
- * FileReader load handler that queues a read local file.
+ * Read a single local file as a data URL and queue it. Resolves once the item is queued (or the read
+ * fails), so callers can await full completion of a drop/paste before hiding the loading bar.
  * @param {File} file
  * @param {HTMLElement} sidebar
- * @returns {(evt: ProgressEvent<FileReader>) => Promise<void>}
+ * @returns {Promise<void>}
  */
-const filesFileReaderHandler = (file, sidebar) => async (evt) => {
-  const imageSrc = evt.target?.result;
-  const saveValue = { type: file.type, name: file.name, imageSrc, id: randomString(), file };
-  await addMediaToQueue(saveValue, sidebar);
-};
+const readAndQueueFile = (file, sidebar) =>
+  new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.addEventListener("load", async (evt) => {
+      const imageSrc = evt.target?.result;
+      const saveValue = { type: file.type, name: file.name, imageSrc, id: randomString(), file };
+      await addMediaToQueue(saveValue, sidebar);
+      resolve();
+    });
+    reader.addEventListener("error", () => {
+      console.warn(`Chat Snap: Failed to read file: ${file.name}`);
+      resolve();
+    });
+    reader.readAsDataURL(file);
+  });
 
 /**
- * Read and queue a list of local files dragged onto the chat input.
+ * Read and queue a list of local files dragged onto the chat input. Awaits every read so the
+ * surrounding loading-bar guard stays active until all files are processed.
  * @param {FileList|File[]} files
  * @param {HTMLElement} sidebar
- * @returns {void}
+ * @returns {Promise<void>}
  */
-export const processFiles = (files, sidebar) => {
-  for (let i = 0; i < files.length; i++) {
-    const file = files[i];
+export const processFiles = async (files, sidebar) => {
+  const reads = [];
+  for (const file of files) {
     if (!isAllowedFile(file)) {
       console.warn(`Chat Snap: File type not allowed: ${file.name}`);
       continue;
     }
-
-    const reader = new FileReader();
-    reader.addEventListener("load", filesFileReaderHandler(file, sidebar));
-    reader.readAsDataURL(file);
+    reads.push(readAndQueueFile(file, sidebar));
   }
+  await Promise.all(reads);
 };
 
 /**

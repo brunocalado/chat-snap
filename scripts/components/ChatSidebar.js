@@ -144,11 +144,17 @@ const pastAndDropEventHandler = (sidebar) => async (evt) => {
   evt.preventDefault();
   evt.stopPropagation();
 
+  // Show the loading bar the instant media is dropped/pasted — before files are read or uploaded —
+  // so the indicator reflects the start of the operation rather than its tail end.
+  const uploadState = getUploadingStates(sidebar);
+  uploadState.on();
+
   processingDropOrPaste = true;
   try {
     await processDropAndPaste(eventData, sidebar);
   } finally {
     processingDropOrPaste = false;
+    uploadState.off();
   }
 };
 

@@ -1,37 +1,46 @@
 /*
  * Module-wide styles for chat-snap. This module injects its UI directly into Foundry's core
  * chat sidebar, so most selectors target module-owned ids/classes (all prefixed `chat-snap-`)
- * living inside core chat elements rather than a single module-scoped root. The only core
- * element restyled directly is `#chat-form` (it must be a positioning context for the spinner).
+ * living inside core chat elements rather than a single module-scoped root.
  */
 
-/* Positioning anchor for the absolutely-positioned upload spinner. */
-#chat-form {
+/*
+ * Upload loading bar. Toggled by adding `.chat-snap-loading` to the chat `<prose-mirror>`
+ * (`#chat-message`). The bar is a `::before` pseudo-element on the prose-mirror HOST itself — never on
+ * an inner `.editor-container`. Disabling the input at the start of an upload makes Foundry tear down
+ * and rebuild the prose-mirror's inner containers, which destroys any bar (injected node or pseudo)
+ * attached to a child — the reason earlier attempts never showed. The host element survives, so a
+ * pseudo-element on it is stable. A glowing segment sweeps left→right via animated background-position
+ * (the paint is auto-clipped to the box, so no overflow rule is needed). Position is stable regardless
+ * of sidebar/panel size.
+ */
+#chat-message.chat-snap-loading {
   position: relative;
 }
 
-#chat-snap-spinner {
-  --chat-snap-spinner-track: #b2c3ff;
-  --chat-snap-spinner-head: #5d49ff;
-
-  z-index: 1;
-  width: 50px;
-  height: 50px;
-  border: 5px solid var(--chat-snap-spinner-track);
-  border-top-color: var(--chat-snap-spinner-head);
-  border-radius: 50%;
+#chat-message.chat-snap-loading::before {
+  content: "";
   position: absolute;
-  left: 40%;
-  bottom: 20%;
-  animation: chat-snap-spin 2s linear infinite;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  z-index: 100;
+  pointer-events: none;
+  border-radius: 0 0 2px 2px;
+  background-image: linear-gradient(90deg, transparent 0%, var(--color-accent, #5d49ff) 50%, transparent 100%);
+  background-repeat: no-repeat;
+  background-size: 40% 100%;
+  background-position: -40% 0;
+  animation: chat-snap-loading-slide 1.1s ease-in-out infinite;
 }
 
-@keyframes chat-snap-spin {
-  0% {
-    transform: rotate(0deg);
+@keyframes chat-snap-loading-slide {
+  from {
+    background-position: -40% 0;
   }
-  100% {
-    transform: rotate(360deg);
+  to {
+    background-position: 140% 0;
   }
 }
 

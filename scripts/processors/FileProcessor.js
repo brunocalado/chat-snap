@@ -12,10 +12,17 @@ let mediaQueue = [];
 
 const IMAGE_EXTENSIONS = [".apng", ".avif", ".bmp", ".gif", ".jpeg", ".jpg", ".png", ".svg", ".tiff", ".webp"];
 const VIDEO_EXTENSIONS = [".webm", ".m4v", ".mp4", ".ogv"];
-const AUDIO_EXTENSIONS = [".mp3", ".wav", ".ogg", ".opus", ".flac", ".aac"];
+// m4a and mid are in Foundry's upload whitelist and play via the native <audio> element.
+const AUDIO_EXTENSIONS = [".mp3", ".wav", ".ogg", ".opus", ".flac", ".aac", ".m4a", ".mid"];
 const PDF_EXTENSIONS = [".pdf"];
-// All text/data formats allowed by Foundry's upload whitelist that the module supports.
-const TEXT_EXTENSIONS = [".txt", ".json", ".csv"];
+// All text/data formats allowed by Foundry's upload whitelist that are viewable as text.
+const TEXT_EXTENSIONS = [".txt", ".json", ".csv", ".md", ".tsv", ".xml", ".yml", ".yaml"];
+// Foundry-allowed formats with no inline viewer: fonts and 3D/game assets.
+const DOWNLOADABLE_EXTENSIONS = [
+  ".otf", ".ttf", ".woff", ".woff2",
+  ".basis", ".ktx2",
+  ".fbx", ".glb", ".gltf", ".mtl", ".obj", ".stl", ".usdz",
+];
 
 /**
  * @param {File|DataTransferItem} file
@@ -42,7 +49,12 @@ const isFilePdf = (file) => PDF_EXTENSIONS.includes(fileExtension(file));
 const isFileText = (file) => TEXT_EXTENSIONS.includes(fileExtension(file));
 
 /** @param {File|DataTransferItem} file @returns {boolean} */
-const isAllowedFile = (file) => isFileImage(file) || isFileVideo(file) || isFileAudio(file) || isFilePdf(file) || isFileText(file);
+const isFileDownloadable = (file) => DOWNLOADABLE_EXTENSIONS.includes(fileExtension(file));
+
+/** @param {File|DataTransferItem} file @returns {boolean} */
+const isAllowedFile = (file) =>
+  isFileImage(file) || isFileVideo(file) || isFileAudio(file) ||
+  isFilePdf(file) || isFileText(file) || isFileDownloadable(file);
 
 /**
  * Resolve the active FilePicker implementation so host environments can substitute their own.
@@ -69,7 +81,7 @@ const isSaveValuePdf = (saveValue) =>
   saveValue.type === "application/pdf" || (!!saveValue.name && isFilePdf({ name: saveValue.name }));
 
 /**
- * True when this save value represents a plain-text, JSON, or CSV file.
+ * True when this save value represents a viewable text or data file.
  * @param {{type?: string, name?: string}} saveValue
  * @returns {boolean}
  */
@@ -77,22 +89,63 @@ const isSaveValueText = (saveValue) =>
   saveValue.type === "text/plain" ||
   saveValue.type === "application/json" ||
   saveValue.type === "text/csv" ||
+  saveValue.type === "text/markdown" ||
+  saveValue.type === "text/x-markdown" ||
+  saveValue.type === "text/tab-separated-values" ||
+  saveValue.type === "text/xml" ||
+  saveValue.type === "application/xml" ||
+  saveValue.type === "text/yaml" ||
+  saveValue.type === "application/yaml" ||
   (!!saveValue.name && isFileText({ name: saveValue.name }));
 
 /**
- * Classify a queued item into one of four mutually-exclusive media categories.
+ * True when this save value is a download-only file (fonts or 3D/game assets — no inline viewer).
+ * Relies on filename extension because MIME types for these formats are inconsistent across OS/browser.
+ * @param {{name?: string}} saveValue
+ * @returns {boolean}
+ */
+const isSaveValueDownloadable = (saveValue) =>
+  !!saveValue.name && isFileDownloadable({ name: saveValue.name });
+
+/**
+ * Classify a queued item into one of five mutually-exclusive media categories.
  * @param {{type?: string, name?: string}} saveValue
- * @returns {"audio"|"pdf"|"text"|"visual"}
+ * @returns {"audio"|"pdf"|"text"|"downloadable"|"visual"}
  */
 const getMediaType = (saveValue) => {
   if (isSaveValueAudio(saveValue)) return "audio";
   if (isSaveValuePdf(saveValue)) return "pdf";
   if (isSaveValueText(saveValue)) return "text";
+  if (isSaveValueDownloadable(saveValue)) return "downloadable";
   return "visual";
 };
 
 /**
- * Build a preview tile (image, video, audio badge, PDF badge, or text badge) for the upload strip.
+ * Return the FontAwesome icon class string for a given text file extension.
+ * @param {string} ext  Lower-cased extension including the dot.
+ * @returns {string}
+ */
+const getTextIcon = (ext) => {
+  if (ext === ".json") return "fa-solid fa-code";
+  if (ext === ".csv" || ext === ".tsv") return "fa-solid fa-table";
+  if (ext === ".xml" || ext === ".yml" || ext === ".yaml") return "fa-regular fa-file-code";
+  if (ext === ".md") return "fa-brands fa-markdown";
+  return "fa-regular fa-file-lines";
+};
+
+/**
+ * Return the FontAwesome icon class string for a downloadable file extension.
+ * @param {string} ext  Lower-cased extension including the dot.
+ * @returns {string}
+ */
+const getDownloadableIcon = (ext) => {
+  if ([".otf", ".ttf", ".woff", ".woff2"].includes(ext)) return "fa-solid fa-font";
+  return "fa-solid fa-cube";
+};
+
+/**
+ * Build a preview tile (image, video, audio badge, PDF badge, text badge, or download badge)
+ * for the upload strip.
  * @param {{imageSrc: string, id: string, type?: string, name?: string}} saveValue
  * @returns {HTMLElement}
  */
@@ -123,20 +176,27 @@ const createMediaPreview = ({ imageSrc, id, type, name }) => {
     );
   }
 
-  const isText = type === "text/plain" || type === "application/json" || type === "text/csv" || (!!name && isFileText({ name }));
+  const isText = !!name && isFileText({ name });
   if (isText) {
     const shortName = (name || "file").replace(/\.[^.]+$/, "");
-    const ext = fileExtension({ name: name ?? "" });
-    const icon = ext === ".json" || type === "application/json"
-      ? "fa-solid fa-code"
-      : ext === ".csv" || type === "text/csv"
-        ? "fa-solid fa-table"
-        : "fa-regular fa-file-lines";
+    const ext = fileExtension({ name });
     return htmlToElement(
       `<div id="${id}" class="chat-snap-upload-area-item chat-snap-text-preview">
                 <i class="chat-snap-remove-icon fa-regular fa-circle-xmark"></i>
-                <i class="chat-snap-text-icon ${icon}"></i>
+                <i class="chat-snap-text-icon ${getTextIcon(ext)}"></i>
                 <span class="chat-snap-text-filename">${shortName}</span>
+            </div>`,
+    );
+  }
+
+  if (!!name && isFileDownloadable({ name })) {
+    const shortName = (name || "file").replace(/\.[^.]+$/, "");
+    const ext = fileExtension({ name });
+    return htmlToElement(
+      `<div id="${id}" class="chat-snap-upload-area-item chat-snap-downloadable-preview">
+                <i class="chat-snap-remove-icon fa-regular fa-circle-xmark"></i>
+                <i class="chat-snap-downloadable-icon ${getDownloadableIcon(ext)}"></i>
+                <span class="chat-snap-downloadable-filename">${shortName}</span>
             </div>`,
     );
   }
@@ -230,6 +290,14 @@ const uploadFile = async (saveValue) => {
         ext = ".json";
       } else if (type === "text/csv") {
         ext = ".csv";
+      } else if (type === "text/markdown" || type === "text/x-markdown") {
+        ext = ".md";
+      } else if (type === "text/tab-separated-values") {
+        ext = ".tsv";
+      } else if (type === "text/xml" || type === "application/xml") {
+        ext = ".xml";
+      } else if (type === "text/yaml" || type === "application/yaml") {
+        ext = ".yaml";
       } else {
         throw new Error("Unsupported file type for upload");
       }
@@ -266,8 +334,8 @@ const uploadFile = async (saveValue) => {
 
 /**
  * Return true when the incoming item's media type differs from what is already queued.
- * Audio, PDF, text, and visual media (image/video) cannot coexist in the same message.
- * @param {"audio"|"pdf"|"text"|"visual"} incomingType
+ * Audio, PDF, text, downloadable, and visual media (image/video) cannot coexist in the same message.
+ * @param {"audio"|"pdf"|"text"|"downloadable"|"visual"} incomingType
  * @returns {boolean}
  */
 const queueConflicts = (incomingType) => {
@@ -290,7 +358,7 @@ const addMediaToQueue = async (saveValue) => {
   if (!uploadArea) return;
 
   const incomingType = getMediaType(saveValue);
-  const isSingleSlot = incomingType === "audio" || incomingType === "pdf" || incomingType === "text";
+  const isSingleSlot = incomingType === "audio" || incomingType === "pdf" || incomingType === "text" || incomingType === "downloadable";
 
   // Single-slot types silently replace an existing item of the same type.
   if (isSingleSlot && mediaQueue.length && getMediaType(mediaQueue[0]) === incomingType) {
@@ -399,7 +467,10 @@ const extractPlainTextUrlFromEventData = (eventData) => {
     if (url.protocol !== "http:" && url.protocol !== "https:") return null;
 
     const pathname = url.pathname.toLowerCase();
-    const ALL_EXTENSIONS = [...IMAGE_EXTENSIONS, ...VIDEO_EXTENSIONS, ...AUDIO_EXTENSIONS, ...PDF_EXTENSIONS, ...TEXT_EXTENSIONS];
+    const ALL_EXTENSIONS = [
+      ...IMAGE_EXTENSIONS, ...VIDEO_EXTENSIONS, ...AUDIO_EXTENSIONS,
+      ...PDF_EXTENSIONS, ...TEXT_EXTENSIONS, ...DOWNLOADABLE_EXTENSIONS,
+    ];
     if (!ALL_EXTENSIONS.some(ext => pathname.endsWith(ext))) return null;
 
     return [text];

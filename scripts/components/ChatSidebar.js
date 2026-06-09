@@ -12,6 +12,31 @@ let eventIsHandlingTheMessage = false;
 let processingDropOrPaste = false;
 
 /**
+ * Return the FontAwesome icon class for a text/data file extension.
+ * @param {string} name  Filename (extension extracted internally).
+ * @returns {string}
+ */
+const getTextIcon = (name) => {
+  const ext = (name ?? "").substring((name ?? "").lastIndexOf(".")).toLowerCase();
+  if (ext === ".json") return "fa-solid fa-code";
+  if (ext === ".csv" || ext === ".tsv") return "fa-solid fa-table";
+  if (ext === ".xml" || ext === ".yml" || ext === ".yaml") return "fa-regular fa-file-code";
+  if (ext === ".md") return "fa-brands fa-markdown";
+  return "fa-regular fa-file-lines";
+};
+
+/**
+ * Return the FontAwesome icon class for a downloadable (font / 3D asset) file.
+ * @param {string} name  Filename (extension extracted internally).
+ * @returns {string}
+ */
+const getDownloadableIcon = (name) => {
+  const ext = (name ?? "").substring((name ?? "").lastIndexOf(".")).toLowerCase();
+  if ([".otf", ".ttf", ".woff", ".woff2"].includes(ext)) return "fa-solid fa-font";
+  return "fa-solid fa-cube";
+};
+
+/**
  * Build the HTML for a single queued media item.
  * @param {{imageSrc: string, name?: string, type?: string}} mediaProps
  * @returns {string}
@@ -21,13 +46,24 @@ const mediaTemplate = (mediaProps) => {
   const isAudio = mediaProps.type?.startsWith("audio/");
   const isPdf =
     mediaProps.type === "application/pdf" || mediaProps.name?.toLowerCase().endsWith(".pdf");
+
+  const TEXT_EXTS = [".txt", ".json", ".csv", ".md", ".tsv", ".xml", ".yml", ".yaml"];
+  const nameExt = mediaProps.name ? mediaProps.name.substring(mediaProps.name.lastIndexOf(".")).toLowerCase() : "";
   const isText =
     mediaProps.type === "text/plain" ||
     mediaProps.type === "application/json" ||
     mediaProps.type === "text/csv" ||
-    mediaProps.name?.toLowerCase().endsWith(".txt") ||
-    mediaProps.name?.toLowerCase().endsWith(".json") ||
-    mediaProps.name?.toLowerCase().endsWith(".csv");
+    mediaProps.type === "text/markdown" ||
+    mediaProps.type === "text/x-markdown" ||
+    mediaProps.type === "text/tab-separated-values" ||
+    mediaProps.type === "text/xml" ||
+    mediaProps.type === "application/xml" ||
+    mediaProps.type === "text/yaml" ||
+    mediaProps.type === "application/yaml" ||
+    TEXT_EXTS.includes(nameExt);
+
+  const DOWNLOAD_EXTS = [".otf", ".ttf", ".woff", ".woff2", ".basis", ".ktx2", ".fbx", ".glb", ".gltf", ".mtl", ".obj", ".stl", ".usdz"];
+  const isDownloadable = DOWNLOAD_EXTS.includes(nameExt);
 
   if (isAudio) {
     return `<div class="chat-snap-media-item">
@@ -50,16 +86,25 @@ const mediaTemplate = (mediaProps) => {
 
   if (isText) {
     const shortName = (mediaProps.name || "file").replace(/\.[^.]+$/, "");
-    const isCsv = mediaProps.type === "text/csv" || mediaProps.name?.toLowerCase().endsWith(".csv");
-    const isJson = mediaProps.type === "application/json" || mediaProps.name?.toLowerCase().endsWith(".json");
-    const icon = isJson ? "fa-solid fa-code" : isCsv ? "fa-solid fa-table" : "fa-regular fa-file-lines";
+    const isJson = mediaProps.type === "application/json" || nameExt === ".json";
     return `<div class="chat-snap-media-item chat-snap-text-item"
      data-text-src="${mediaProps.imageSrc}"
      data-text-name="${shortName}"
      data-text-json="${isJson ? "true" : "false"}">
-  <i class="${icon}"></i>
+  <i class="${getTextIcon(mediaProps.name)}"></i>
   <span class="chat-snap-text-filename">${shortName}</span>
   <p class="chat-snap-hint">Click to view</p>
+</div>`;
+  }
+
+  if (isDownloadable) {
+    const shortName = (mediaProps.name || "file").replace(/\.[^.]+$/, "");
+    return `<div class="chat-snap-media-item chat-snap-downloadable-item"
+     data-download-src="${mediaProps.imageSrc}"
+     data-download-name="${shortName}">
+  <i class="${getDownloadableIcon(mediaProps.name)}"></i>
+  <span class="chat-snap-downloadable-filename">${shortName}</span>
+  <p class="chat-snap-hint">Click to download</p>
 </div>`;
   }
 

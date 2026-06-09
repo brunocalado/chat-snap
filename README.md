@@ -1,6 +1,6 @@
 # Chat Snap
 
-**Share images, videos, audio, PDFs, and text files in your Foundry VTT chat — as easily as texting a friend.**
+**Share images, videos, audio, PDFs, text files, 3D assets, and fonts in your Foundry VTT chat — as easily as texting a friend.**
 
 Drop a file. Paste a link. Hit Enter. Your whole table sees it.
 
@@ -41,10 +41,13 @@ Audio files embed directly in chat with native browser playback controls. Playba
 ### PDF Sharing
 Drag a PDF onto the chat input to share it. A badge (PDF icon + filename) appears in the upload strip before sending, and again in the posted message. Click the badge to open the PDF in a viewer dialog, which includes an **Open in new tab** button as fallback. The viewer fetches the file with your session credentials, so it works reliably for both GMs and players across browsers.
 
-### Text, JSON & CSV Files
-Drag a `.txt`, `.json`, or `.csv` file onto the chat input to share it. A badge (file icon + filename) appears in the message. Click the badge to open a viewer dialog with the file contents — JSON is automatically pretty-printed. An **Open in new tab** button is available as fallback.
+### Text & Data Files
+Drag a `.txt`, `.json`, `.csv`, `.md`, `.tsv`, `.xml`, `.yml`, or `.yaml` file onto the chat input to share it. A badge with a type-specific icon appears in the message. Click the badge to open a viewer dialog with the file contents — JSON is automatically pretty-printed. An **Open in new tab** button is available as fallback.
 
-> **Note:** Only one audio, PDF, or text file can be queued per message. These types cannot be mixed with each other or with visual media (images/videos) in the same message.
+### Fonts & 3D Assets
+Drag a font (`.otf`, `.ttf`, `.woff`, `.woff2`) or 3D model/asset file (`.glb`, `.gltf`, `.fbx`, `.obj`, `.stl`, `.usdz`, `.mtl`, `.basis`, `.ktx2`) onto the chat input. A badge with a type-specific icon (font or cube) appears in the message. Clicking it opens the file in a new browser tab.
+
+> **Note:** Only one audio, PDF, text, or asset file can be queued per message. These types cannot be mixed with each other or with visual media (images/videos) in the same message.
 
 ## Supported Formats
 
@@ -52,9 +55,11 @@ Drag a `.txt`, `.json`, or `.csv` file onto the chat input to share it. A badge 
 |--------|---------|
 | Images | APNG, AVIF, BMP, GIF, JPEG, JPG, PNG, SVG, TIFF, WEBP |
 | Videos | MP4, WEBM, M4V, OGV |
-| Audio  | MP3, WAV, OGG, OPUS, FLAC, AAC |
+| Audio  | MP3, WAV, OGG, OPUS, FLAC, AAC, M4A, MID |
 | PDF    | PDF |
-| Text / Data | TXT, JSON, CSV |
+| Text / Data | TXT, JSON, CSV, MD, TSV, XML, YML, YAML |
+| Fonts | OTF, TTF, WOFF, WOFF2 |
+| 3D Assets | GLB, GLTF, FBX, OBJ, STL, USDZ, MTL, BASIS, KTX2 |
 
 ---
 

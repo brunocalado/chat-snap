@@ -2,7 +2,9 @@
 
 ### Added
 - Support for `.txt` and `.json` files: drag-and-drop or paste them into chat to upload and share. Files appear as a named badge in the message; clicking opens a viewer popout with the raw content (JSON is automatically pretty-printed). A download link is also injected when the *Show download button* setting is enabled.
-- Support for `.csv` files: drag-and-drop or paste them into chat, shown as a table-icon badge. Clicking opens the content in the text viewer (same as `.txt` / `.json`).
+- Added audio formats `.m4a` and `.mid`.
+- Added text/data formats `.csv`, `.md`, `.tsv`, `.xml`, `.yml`, `.yaml` — all viewable in the text viewer with type-specific icons.
+- Added download-only support for fonts (`.otf`, `.ttf`, `.woff`, `.woff2`) and 3D/game assets (`.glb`, `.gltf`, `.fbx`, `.obj`, `.stl`, `.usdz`, `.mtl`, `.basis`, `.ktx2`). Files appear as a font or cube icon badge; clicking opens in a new tab.
 
 # 0.0.4
 

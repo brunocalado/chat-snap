@@ -2,7 +2,7 @@
 
 ### Added
 - Support for `.txt` and `.json` files: drag-and-drop or paste them into chat to upload and share. Files appear as a named badge in the message; clicking opens a viewer popout with the raw content (JSON is automatically pretty-printed). A download link is also injected when the *Show download button* setting is enabled.
-- Support for downloadable file types (no inline viewer): `.doc`, `.docx`, `.odt`, `.xls`, `.xlsx`, `.ods`, `.csv`, `.ppt`, `.pptx`, `.odp`, `.zip`, `.7z`, `.rar`, `.epub`, `.html`. Files appear as a type-specific icon badge in chat; clicking opens the file in a new browser tab.
+- Support for `.csv` files: drag-and-drop or paste them into chat, shown as a table-icon badge. Clicking opens the content in the text viewer (same as `.txt` / `.json`).
 
 # 0.0.4
 

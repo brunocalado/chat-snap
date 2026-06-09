@@ -74,11 +74,6 @@ const addDownloadButtons = (html) => {
     injectDownloadButton(hint, el.dataset.textSrc);
   });
 
-  html.querySelectorAll(".chat-snap-downloadable-item[data-download-src]").forEach((el) => {
-    const hint = el.querySelector(".chat-snap-hint");
-    if (!hint) return;
-    injectDownloadButton(hint, el.dataset.downloadSrc);
-  });
 };
 
 /**
@@ -197,17 +192,6 @@ export const initChatMessage = (html) => {
     };
 
     pdfItems.forEach((el) => el.addEventListener("click", clickPdfHandle));
-  }
-
-  const downloadItems = html.querySelectorAll(".chat-snap-downloadable-item");
-  if (downloadItems.length > 0) {
-    /** @param {MouseEvent} evt */
-    const clickDownloadHandle = (evt) => {
-      const target = /** @type {HTMLElement} */ (evt.currentTarget);
-      window.open(target.dataset.downloadSrc, "_blank", "noopener,noreferrer");
-    };
-
-    downloadItems.forEach((el) => el.addEventListener("click", clickDownloadHandle));
   }
 
   const textItems = html.querySelectorAll(".chat-snap-text-item");

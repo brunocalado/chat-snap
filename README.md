@@ -41,13 +41,10 @@ Audio files embed directly in chat with native browser playback controls. Playba
 ### PDF Sharing
 Drag a PDF onto the chat input to share it. A badge (PDF icon + filename) appears in the upload strip before sending, and again in the posted message. Click the badge to open the PDF in a viewer dialog, which includes an **Open in new tab** button as fallback. The viewer fetches the file with your session credentials, so it works reliably for both GMs and players across browsers.
 
-### Text & JSON Files
-Drag a `.txt` or `.json` file onto the chat input to share it. A badge (file icon + filename) appears in the message. Click the badge to open a viewer dialog with the file contents — JSON is automatically pretty-printed. An **Open in new tab** button is available as fallback.
+### Text, JSON & CSV Files
+Drag a `.txt`, `.json`, or `.csv` file onto the chat input to share it. A badge (file icon + filename) appears in the message. Click the badge to open a viewer dialog with the file contents — JSON is automatically pretty-printed. An **Open in new tab** button is available as fallback.
 
-### Downloadable Files
-Drag any of the supported document, spreadsheet, presentation, archive, ebook, or HTML file types onto the chat input. A badge with the appropriate icon and filename appears in the message. Clicking the badge opens the file in a new browser tab — the browser handles it from there (downloads it or renders it depending on the file type). Each format shows a type-specific icon (Word, Excel, PowerPoint, archive, etc.).
-
-> **Note:** Only one audio, PDF, text, or downloadable file can be queued per message. These types cannot be mixed with each other or with visual media (images/videos) in the same message.
+> **Note:** Only one audio, PDF, or text file can be queued per message. These types cannot be mixed with each other or with visual media (images/videos) in the same message.
 
 ## Supported Formats
 
@@ -57,12 +54,7 @@ Drag any of the supported document, spreadsheet, presentation, archive, ebook, o
 | Videos | MP4, WEBM, M4V, OGV |
 | Audio  | MP3, WAV, OGG, OPUS, FLAC, AAC |
 | PDF    | PDF |
-| Text   | TXT, JSON |
-| Documents | DOC, DOCX, ODT |
-| Spreadsheets | XLS, XLSX, ODS, CSV |
-| Presentations | PPT, PPTX, ODP |
-| Archives | ZIP, 7Z, RAR |
-| Other | EPUB, HTML |
+| Text / Data | TXT, JSON, CSV |
 
 ---
 

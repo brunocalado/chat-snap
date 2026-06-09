@@ -1,0 +1,32 @@
+/*
+ * Styles for the StorageDialog application. Scoped under `.chat-snap`, the class added to the
+ * application root via StorageDialog.DEFAULT_OPTIONS.classes.
+ */
+.chat-snap.storage-dialog {
+  .storage-section {
+    margin-bottom: 1rem;
+
+    h3 {
+      border-bottom: 1px solid var(--color-border-light-tertiary);
+      margin-bottom: 0.5rem;
+    }
+  }
+
+  .storage-usage-row {
+    align-items: center;
+    gap: 0.75rem;
+
+    button {
+      flex: 0 0 auto;
+    }
+
+    .storage-check-result {
+      flex: 1 1 auto;
+      color: var(--color-text-secondary);
+      font-size: var(--font-size-13);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+}

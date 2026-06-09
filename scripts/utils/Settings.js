@@ -1,5 +1,6 @@
-import { MODULE_ID, SETTING_SETUP_COMPLETE, SETTING_USE_DATE_FOLDERS, SETTING_SHOW_DOWNLOAD_BUTTON, SETTING_MAX_FILE_SIZE_MB } from "../constants.js";
+import { MODULE_ID, SETTING_SETUP_COMPLETE, SETTING_USE_DATE_FOLDERS, SETTING_SHOW_DOWNLOAD_BUTTON, SETTING_MAX_FILE_SIZE_MB, SETTING_STORAGE_LAST_CHECK_BYTES, SETTING_STORAGE_LAST_CHECK_DATE } from "../constants.js";
 import { ORIGIN_FOLDER } from "./Utils.js";
+import { StorageDialog } from "../storage/StorageDialog.js";
 
 /**
  * Resolve the active FilePicker implementation so host environments (e.g. The Forge) can
@@ -98,15 +99,21 @@ export const getSettings = () => [
   {
     key: SETTING_MAX_FILE_SIZE_MB,
     options: {
-      name: "Max file size (MB)",
-      hint: "Files larger than this limit are rejected before upload. Range: 1–1000 MB.",
+      // Managed by StorageDialog; hidden from the main settings panel.
       type: Number,
       default: 120,
-      range: { min: 1, max: 1000, step: 1 },
       scope: "world",
-      config: true,
+      config: false,
       restricted: true,
     },
+  },
+  {
+    key: SETTING_STORAGE_LAST_CHECK_BYTES,
+    options: { type: Number, default: 0, scope: "world", config: false },
+  },
+  {
+    key: SETTING_STORAGE_LAST_CHECK_DATE,
+    options: { type: String, default: "", scope: "world", config: false },
   },
   {
     key: SETTING_SETUP_COMPLETE,
@@ -128,4 +135,21 @@ export const registerSetting = (setting) => {
 
 export const getSetting = (key) => {
   return game.settings.get(MODULE_ID, key);
+};
+
+/**
+ * Register the Storage & Upload menu entry in the module settings panel.
+ * Opens StorageDialog where the GM can configure max file size and check/clear the upload folder.
+ * Called from the `init` hook after registerSettings().
+ * @returns {void}
+ */
+export const registerStorageMenu = () => {
+  game.settings.registerMenu(MODULE_ID, "storageMenu", {
+    name: "Storage & Upload",
+    label: "Configure",
+    hint: "Configure file size limits and check upload folder disk usage.",
+    icon: "fa-solid fa-hard-drive",
+    type: StorageDialog,
+    restricted: true,
+  });
 };

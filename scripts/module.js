@@ -1,7 +1,7 @@
 import { initUploadArea } from "./components/UploadArea.js";
 import { initChatSidebar } from "./components/ChatSidebar.js";
 import { initChatMessage } from "./components/ChatMessage.js";
-import { createUploadFolder, getSettings, registerSetting, getSetting, setSetting } from "./utils/Settings.js";
+import { createUploadFolder, getSettings, registerSetting, getSetting, setSetting, registerStorageMenu } from "./utils/Settings.js";
 import { SetupDialog } from "./setup/setup-dialog.js";
 import { MODULE_ID, SETTING_SETUP_COMPLETE } from "./constants.js";
 
@@ -17,6 +17,7 @@ const registerSettings = () => {
 
 Hooks.once("init", () => {
   registerSettings();
+  registerStorageMenu();
   // Non-GM users lack FILES_BROWSE permission and cannot call createUploadFolder directly.
   // This query runs on any active GM client, which creates the folder on the player's behalf.
   CONFIG.queries[`${MODULE_ID}.ensureFolder`] = async (_userId, { folderPath }) => {

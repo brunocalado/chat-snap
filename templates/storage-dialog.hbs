@@ -1,0 +1,33 @@
+<form class="flexcol" autocomplete="off">
+  <div class="storage-section">
+    <h3>Upload Limits</h3>
+    <div class="form-group">
+      <label for="maxFileSizeMb">Max File Size (MB)</label>
+      <input type="number" id="maxFileSizeMb" name="maxFileSizeMb"
+             value="{{maxFileSizeMb}}" min="1" max="1000" step="1">
+      <p class="hint">Applies to players only — GMs can upload files of any size. Range: 1–1000 MB.</p>
+    </div>
+  </div>
+
+  <div class="storage-section">
+    <h3>Storage Usage</h3>
+    <div class="flexrow storage-usage-row">
+      <button type="button" data-action="checkUsage">
+        <i class="fa-solid fa-magnifying-glass-chart"></i> Check Usage
+      </button>
+      <span class="storage-check-result">
+        {{#if lastCheckLabel}}
+          Usage: <strong>{{lastCheckLabel}}</strong> &nbsp;|&nbsp; Last Check: {{lastCheckDate}}
+        {{else}}
+          —
+        {{/if}}
+      </span>
+    </div>
+  </div>
+
+  <div class="form-footer flexrow">
+    <button type="button" data-action="save">
+      <i class="fa-solid fa-floppy-disk"></i> Save
+    </button>
+  </div>
+</form>

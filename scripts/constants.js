@@ -32,3 +32,16 @@ export const SETTING_SHOW_DOWNLOAD_BUTTON = "showDownloadButton";
  * @type {string}
  */
 export const SETTING_MAX_FILE_SIZE_MB = "maxFileSizeMb";
+
+/**
+ * Setting key storing the byte total from the last manual storage check.
+ * Persisted so the StorageDialog can show the result across sessions.
+ * @type {string}
+ */
+export const SETTING_STORAGE_LAST_CHECK_BYTES = "storageLastCheckBytes";
+
+/**
+ * Setting key storing the ISO date string of the last manual storage check.
+ * @type {string}
+ */
+export const SETTING_STORAGE_LAST_CHECK_DATE = "storageLastCheckDate";

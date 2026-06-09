@@ -424,7 +424,8 @@ export const processFiles = async (files) => {
       console.warn(`Chat Snap: File type not allowed: ${file.name}`);
       continue;
     }
-    if (file.size > maxBytes) {
+    // GMs bypass the file size limit entirely.
+    if (!game.user.isGM && file.size > maxBytes) {
       ui.notifications?.warn(
         `Chat Snap: "${file.name}" exceeds the ${getSetting(SETTING_MAX_FILE_SIZE_MB)} MB limit and was not uploaded.`
       );

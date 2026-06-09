@@ -1,3 +1,12 @@
+# 0.0.7
+
+### Added
+- New **Storage & Upload** settings menu (replaces the old inline *Max file size* setting). Opens a dedicated dialog where the GM can set the file size limit and run a manual **Check Usage** scan that sums the real disk usage of the upload folder via HTTP HEAD requests. The last result and its date are persisted and shown on reopening the dialog.
+
+### Changed
+- **Max file size limit no longer applies to GMs.** GMs can upload files of any size regardless of the configured limit. The limit continues to apply to all non-GM roles.
+- Max file size setting moved out of the main settings panel into the new Storage & Upload dialog.
+
 # 0.0.6
 
 ### Added

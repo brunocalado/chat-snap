@@ -1,4 +1,4 @@
-import { MODULE_ID, SETTING_SETUP_COMPLETE, SETTING_USE_DATE_FOLDERS } from "../constants.js";
+import { MODULE_ID, SETTING_SETUP_COMPLETE, SETTING_USE_DATE_FOLDERS, SETTING_SHOW_DOWNLOAD_BUTTON } from "../constants.js";
 import { ORIGIN_FOLDER } from "./Utils.js";
 
 /**
@@ -76,6 +76,18 @@ export const getSettings = () => [
     options: {
       name: "Video Autoplay",
       hint: "Automatically play videos when they appear in chat",
+      type: Boolean,
+      default: true,
+      scope: "world",
+      config: true,
+      restricted: true,
+    },
+  },
+  {
+    key: SETTING_SHOW_DOWNLOAD_BUTTON,
+    options: {
+      name: "Show download button on chat media",
+      hint: "Display a download button alongside media items sent through Chat Snap.",
       type: Boolean,
       default: true,
       scope: "world",

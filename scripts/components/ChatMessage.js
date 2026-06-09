@@ -1,7 +1,72 @@
 import VideoPopout from "../share-media/VideoPopout.js";
 import PDFPopout from "../share-media/PDFPopout.js";
+import { getSetting } from "../utils/Settings.js";
+import { SETTING_SHOW_DOWNLOAD_BUTTON } from "../constants.js";
 
 const ImagePopout = foundry.applications.apps.ImagePopout;
+
+/**
+ * Inject a download anchor into a `.chat-snap-hint` element and apply the appropriate
+ * flex-layout modifier class. Stops click propagation so parent popout handlers don't fire.
+ * @param {HTMLElement} hintEl  The hint paragraph to inject the button into.
+ * @param {string} src  The asset URL to download.
+ * @param {boolean} [downloadOnly=false]  True when the hint has no existing text (audio).
+ * @returns {void}
+ */
+const injectDownloadButton = (hintEl, src, downloadOnly = false) => {
+  hintEl.classList.add(downloadOnly ? "chat-snap-hint--download-only" : "chat-snap-hint--with-download");
+  const btn = document.createElement("a");
+  btn.className = "chat-snap-download-btn";
+  btn.href = src;
+  btn.setAttribute("download", src.split("/").pop().split("?")[0] || "");
+  btn.textContent = "Download";
+  // Prevent the click from bubbling to parent popout handlers (critical for .chat-snap-pdf-item).
+  btn.addEventListener("click", (evt) => evt.stopPropagation());
+  hintEl.appendChild(btn);
+};
+
+/**
+ * Add download buttons to all media items in the rendered chat message.
+ * Buttons are injected into existing `.chat-snap-hint` elements; a new hint is created
+ * for audio items which have no hint by default.
+ * Called from `initChatMessage` when the showDownloadButton setting is enabled.
+ * @param {HTMLElement} html  The rendered chat message element.
+ * @returns {void}
+ */
+const addDownloadButtons = (html) => {
+  html.querySelectorAll(".chat-snap-media-item img").forEach((img) => {
+    const hint = img.closest(".chat-snap-media-item")?.querySelector(".chat-snap-hint");
+    if (!hint) return;
+    injectDownloadButton(hint, img.dataset.src || img.src);
+  });
+
+  html.querySelectorAll(".chat-snap-media-item video").forEach((video) => {
+    const hint = video.closest(".chat-snap-media-item")?.querySelector(".chat-snap-hint");
+    if (!hint) return;
+    injectDownloadButton(hint, video.dataset.src || video.src);
+  });
+
+  html.querySelectorAll(".chat-snap-media-item audio").forEach((audio) => {
+    const item = audio.closest(".chat-snap-media-item");
+    if (!item) return;
+    const src = audio.src || audio.querySelector("source")?.src || "";
+    if (!src) return;
+    let hint = item.querySelector(".chat-snap-hint");
+    const hasText = !!hint?.textContent?.trim();
+    if (!hint) {
+      hint = document.createElement("p");
+      hint.className = "chat-snap-hint";
+      item.appendChild(hint);
+    }
+    injectDownloadButton(hint, src, !hasText);
+  });
+
+  html.querySelectorAll(".chat-snap-pdf-item[data-pdf-src]").forEach((el) => {
+    const hint = el.querySelector(".chat-snap-hint");
+    if (!hint) return;
+    injectDownloadButton(hint, el.dataset.pdfSrc);
+  });
+};
 
 /**
  * Wire click handlers onto media embedded in a rendered chat message: images open the core
@@ -120,4 +185,6 @@ export const initChatMessage = (html) => {
 
     pdfItems.forEach((el) => el.addEventListener("click", clickPdfHandle));
   }
+
+  if (getSetting(SETTING_SHOW_DOWNLOAD_BUTTON)) addDownloadButtons(html);
 };

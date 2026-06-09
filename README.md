@@ -30,6 +30,9 @@ Queued media shows up as thumbnails (or an audio badge) above the chat input. Yo
 ### Click to Enlarge
 Any image in chat can be clicked to open a larger view. Videos embed with full playback controls and can be opened fullscreen.
 
+### Download Button
+Every media item in chat shows a **Download** link in the hint row below it — on the right side, with the "Click to open larger" label on the left. Click it to save the file to your device. Can be disabled in module settings.
+
 ### Audio Playback
 Audio files embed directly in chat with native browser playback controls. Playback is client-side only — each player controls their own volume and timing independently, so playing a clip only affects the client that pressed play.
 
@@ -81,6 +84,7 @@ Check the roles you want to allow, then save.
 | Upload Location | GM only | Folder where uploaded media files are stored on the server. Default: `uploaded-chat-snap`. |
 | Organize uploads by date | GM only | Groups uploaded files into daily subfolders (e.g. `uploaded-chat-snap/2026-06-08/`). On by default. Disable on hosting platforms where folder creation behaves differently, such as The Forge. |
 | Video Autoplay | GM only | Whether videos play automatically when they appear in chat. On by default. |
+| Show download button on chat media | GM only | Displays a **Download** link below every media item (images, videos, audio, PDFs) in chat. On by default. |
 | Setup Complete | GM only | Hides the first-run permissions dialog. Uncheck to show it again. |
 
 ---

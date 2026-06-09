@@ -1,3 +1,8 @@
+# 0.0.4
+
+### Added
+- Download button on chat media: images, videos, audio, and PDFs now show a **Download** link in the hint row below the asset. The link is on the right side of the row, with "Click to open larger" (or "Click to view" for PDFs) left-aligned on the same line. A new world setting **Show download button on chat media** (enabled by default) controls the feature.
+
 # 0.0.3
 
 - improved loading indicator

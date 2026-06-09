@@ -18,3 +18,10 @@ export const SETTING_SETUP_COMPLETE = "setupComplete";
  * @type {string}
  */
 export const SETTING_USE_DATE_FOLDERS = "useDateFolders";
+
+/**
+ * Setting key for showing/hiding the download button on chat media items.
+ * Used in Settings.js (registration) and ChatMessage.js (render logic).
+ * @type {string}
+ */
+export const SETTING_SHOW_DOWNLOAD_BUTTON = "showDownloadButton";

@@ -68,6 +68,34 @@
   opacity: 0.6;
   font-style: italic;
   pointer-events: none;
+
+  /* Flex layout when a download button is present alongside hint text. */
+  &.chat-snap-hint--with-download {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-align: left;
+  }
+
+  /* Flex layout when the hint contains only a download button (audio items). */
+  &.chat-snap-hint--download-only {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+  }
+
+  .chat-snap-download-btn {
+    pointer-events: auto;
+    cursor: pointer;
+    font-style: normal;
+    color: var(--color-text-hyperlink, var(--color-warm-1));
+    text-decoration: none;
+    white-space: nowrap;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
 }
 
 #chat-snap-chat-upload-area {

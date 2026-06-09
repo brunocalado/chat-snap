@@ -2,7 +2,7 @@ import { ORIGIN_FOLDER, randomString, userCanUpload } from "../utils/Utils.js";
 import { htmlToElement } from "../helpers.js";
 import { getUploadingStates } from "../components/Loader.js";
 import { getSetting, createUploadFolder } from "../utils/Settings.js";
-import { SETTING_USE_DATE_FOLDERS } from "../constants.js";
+import { MODULE_ID, SETTING_USE_DATE_FOLDERS } from "../constants.js";
 
 const RESTRICTED_DOMAINS = ["static.wikia"];
 
@@ -143,6 +143,33 @@ const addEventToRemoveButton = (removeButton, saveValue, uploadArea) => {
 };
 
 /**
+ * Ensure the target upload folder exists. GMs call Settings.createUploadFolder directly;
+ * non-GM users (who lack FILES_BROWSE) ask the active GM via a socket query instead.
+ * Falls through silently when no GM is available so the upload can still be attempted
+ * (the folder may already exist from an earlier upload that session).
+ * @param {string} folderPath  Server-relative folder path to ensure.
+ * @returns {Promise<void>}
+ */
+const ensureFolder = async (folderPath) => {
+  if (game.user.isGM) {
+    await createUploadFolder(folderPath);
+    return;
+  }
+  // Queries target a specific User document; find any active GM to handle the request.
+  const gm = game.users.find(u => u.isGM && u.active);
+  if (!gm) {
+    console.warn("Chat Snap: No active GM found to create upload folder; proceeding without it.");
+    return;
+  }
+  try {
+    await gm.query(`${MODULE_ID}.ensureFolder`, { folderPath });
+  } catch (e) {
+    // Query timed out or GM rejected; proceed and let the upload surface any real error.
+    console.warn("Chat Snap: Could not ensure upload folder via GM query:", e);
+  }
+};
+
+/**
  * Upload a local file to the configured location, organized into a date subfolder
  * when the useDateFolders setting is enabled.
  * @param {{type?: string, name?: string, id: string, imageSrc: string, file: File}} saveValue
@@ -181,8 +208,9 @@ const uploadFile = async (saveValue) => {
     if (useDateFolders) {
       const dateFolder = new Date().toISOString().slice(0, 10);
       effectiveLocation = `${uploadLocation}/${dateFolder}`;
-      await createUploadFolder(effectiveLocation);
     }
+
+    await ensureFolder(effectiveLocation);
 
     const FilePicker = getFilePicker();
     const fileLocation = await FilePicker.upload(ORIGIN_FOLDER, effectiveLocation, fileToUpload, {}, { notify: false });

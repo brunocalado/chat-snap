@@ -2,6 +2,8 @@
 
 ### Fixed
 - Pasting a plain image/video/audio/PDF URL (e.g. `https://example.com/image.png`) now correctly queues a media preview instead of inserting the URL as plain text.
+- Non-GM users with `FILES_UPLOAD` permission could not upload videos (or any file) when **Organize uploads by date** was enabled. The date subfolder creation requires `FILES_BROWSE`, which players typically lack. Folder creation is now delegated to the GM via a socket query (`CONFIG.queries`), so non-GM uploads work correctly and the video is served from a real server path visible to all clients.
+- Non-GM clients were triggering a spurious unhandled-promise-rejection at module startup because `createUploadFolder` (which calls `FilePicker.browse`) was called for all users in the `init` hook. It is now called only for the GM in the `ready` hook.
 
 ### Changed
 - Video popout is now a dedicated `VideoPopout` class (replacing the `MediaPopout` path for videos), giving full control over window sizing independent of the core `ImagePopout` logic.

@@ -1,3 +1,8 @@
+# 0.0.6
+
+### Added
+- Support for `.txt` and `.json` files: drag-and-drop or paste them into chat to upload and share. Files appear as a named badge in the message; clicking opens a viewer popout with the raw content (JSON is automatically pretty-printed). A download link is also injected when the *Show download button* setting is enabled.
+
 # 0.0.4
 
 ### Added

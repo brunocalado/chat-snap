@@ -4,7 +4,7 @@
     
     "description": "Extends chat functionality with image and video support.",
     
-    "version": "0.0.5",
+    "version": "0.0.6",
     
     "authors": [
         {
@@ -17,7 +17,7 @@
     "socket": true,
     
     "esmodules": ["scripts/module.js"],
-    "styles": ["styles/base.css", "styles/media-popout.css", "styles/video-popout.css", "styles/setup-dialog.css", "styles/pdf-popout.css"],
+    "styles": ["styles/base.css", "styles/media-popout.css", "styles/video-popout.css", "styles/setup-dialog.css", "styles/pdf-popout.css", "styles/text-popout.css"],
     
     "compatibility": {
         "minimum": 14,

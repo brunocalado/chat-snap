@@ -21,6 +21,11 @@ const mediaTemplate = (mediaProps) => {
   const isAudio = mediaProps.type?.startsWith("audio/");
   const isPdf =
     mediaProps.type === "application/pdf" || mediaProps.name?.toLowerCase().endsWith(".pdf");
+  const isText =
+    mediaProps.type === "text/plain" ||
+    mediaProps.type === "application/json" ||
+    mediaProps.name?.toLowerCase().endsWith(".txt") ||
+    mediaProps.name?.toLowerCase().endsWith(".json");
 
   if (isAudio) {
     return `<div class="chat-snap-media-item">
@@ -37,6 +42,19 @@ const mediaTemplate = (mediaProps) => {
      data-pdf-name="${shortName}">
   <i class="fa-regular fa-file-pdf"></i>
   <span class="chat-snap-pdf-filename">${shortName}</span>
+  <p class="chat-snap-hint">Click to view</p>
+</div>`;
+  }
+
+  if (isText) {
+    const shortName = (mediaProps.name || "file").replace(/\.[^.]+$/, "");
+    const isJson = mediaProps.type === "application/json" || mediaProps.name?.toLowerCase().endsWith(".json");
+    return `<div class="chat-snap-media-item chat-snap-text-item"
+     data-text-src="${mediaProps.imageSrc}"
+     data-text-name="${shortName}"
+     data-text-json="${isJson ? "true" : "false"}">
+  <i class="${isJson ? "fa-solid fa-code" : "fa-regular fa-file-lines"}"></i>
+  <span class="chat-snap-text-filename">${shortName}</span>
   <p class="chat-snap-hint">Click to view</p>
 </div>`;
   }

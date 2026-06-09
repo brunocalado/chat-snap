@@ -14,6 +14,7 @@ const IMAGE_EXTENSIONS = [".apng", ".avif", ".bmp", ".gif", ".jpeg", ".jpg", ".p
 const VIDEO_EXTENSIONS = [".webm", ".m4v", ".mp4", ".ogv"];
 const AUDIO_EXTENSIONS = [".mp3", ".wav", ".ogg", ".opus", ".flac", ".aac"];
 const PDF_EXTENSIONS = [".pdf"];
+const TEXT_EXTENSIONS = [".txt", ".json"];
 
 /**
  * @param {File|DataTransferItem} file
@@ -37,7 +38,10 @@ const isFileAudio = (file) => AUDIO_EXTENSIONS.includes(fileExtension(file));
 const isFilePdf = (file) => PDF_EXTENSIONS.includes(fileExtension(file));
 
 /** @param {File|DataTransferItem} file @returns {boolean} */
-const isAllowedFile = (file) => isFileImage(file) || isFileVideo(file) || isFileAudio(file) || isFilePdf(file);
+const isFileText = (file) => TEXT_EXTENSIONS.includes(fileExtension(file));
+
+/** @param {File|DataTransferItem} file @returns {boolean} */
+const isAllowedFile = (file) => isFileImage(file) || isFileVideo(file) || isFileAudio(file) || isFilePdf(file) || isFileText(file);
 
 /**
  * Resolve the active FilePicker implementation so host environments can substitute their own.
@@ -64,13 +68,24 @@ const isSaveValuePdf = (saveValue) =>
   saveValue.type === "application/pdf" || (!!saveValue.name && isFilePdf({ name: saveValue.name }));
 
 /**
- * Classify a queued item into one of three mutually-exclusive media categories.
+ * True when this save value represents a plain-text or JSON file.
  * @param {{type?: string, name?: string}} saveValue
- * @returns {"audio"|"pdf"|"visual"}
+ * @returns {boolean}
+ */
+const isSaveValueText = (saveValue) =>
+  saveValue.type === "text/plain" ||
+  saveValue.type === "application/json" ||
+  (!!saveValue.name && isFileText({ name: saveValue.name }));
+
+/**
+ * Classify a queued item into one of four mutually-exclusive media categories.
+ * @param {{type?: string, name?: string}} saveValue
+ * @returns {"audio"|"pdf"|"text"|"visual"}
  */
 const getMediaType = (saveValue) => {
   if (isSaveValueAudio(saveValue)) return "audio";
   if (isSaveValuePdf(saveValue)) return "pdf";
+  if (isSaveValueText(saveValue)) return "text";
   return "visual";
 };
 
@@ -102,6 +117,19 @@ const createMediaPreview = ({ imageSrc, id, type, name }) => {
                 <i class="chat-snap-remove-icon fa-regular fa-circle-xmark"></i>
                 <i class="chat-snap-pdf-icon fa-regular fa-file-pdf"></i>
                 <span class="chat-snap-pdf-filename">${shortName}</span>
+            </div>`,
+    );
+  }
+
+  const isText = type === "text/plain" || type === "application/json" || (!!name && isFileText({ name }));
+  if (isText) {
+    const shortName = (name || "file").replace(/\.[^.]+$/, "");
+    const isJson = fileExtension({ name: name ?? "" }) === ".json" || type === "application/json";
+    return htmlToElement(
+      `<div id="${id}" class="chat-snap-upload-area-item chat-snap-text-preview">
+                <i class="chat-snap-remove-icon fa-regular fa-circle-xmark"></i>
+                <i class="chat-snap-text-icon ${isJson ? "fa-solid fa-code" : "fa-regular fa-file-lines"}"></i>
+                <span class="chat-snap-text-filename">${shortName}</span>
             </div>`,
     );
   }
@@ -189,6 +217,10 @@ const uploadFile = async (saveValue) => {
         ext = type.replace("audio/", ".").split(";")[0] || ".mp3";
       } else if (type === "application/pdf") {
         ext = ".pdf";
+      } else if (type === "text/plain") {
+        ext = ".txt";
+      } else if (type === "application/json") {
+        ext = ".json";
       } else {
         throw new Error("Unsupported file type for upload");
       }
@@ -225,8 +257,8 @@ const uploadFile = async (saveValue) => {
 
 /**
  * Return true when the incoming item's media type differs from what is already queued.
- * Audio, PDF, and visual media (image/video) cannot coexist in the same message.
- * @param {"audio"|"pdf"|"visual"} incomingType
+ * Audio, PDF, text, and visual media (image/video) cannot coexist in the same message.
+ * @param {"audio"|"pdf"|"text"|"visual"} incomingType
  * @returns {boolean}
  */
 const queueConflicts = (incomingType) => {
@@ -249,7 +281,7 @@ const addMediaToQueue = async (saveValue) => {
   if (!uploadArea) return;
 
   const incomingType = getMediaType(saveValue);
-  const isSingleSlot = incomingType === "audio" || incomingType === "pdf";
+  const isSingleSlot = incomingType === "audio" || incomingType === "pdf" || incomingType === "text";
 
   // Single-slot types silently replace an existing item of the same type.
   if (isSingleSlot && mediaQueue.length && getMediaType(mediaQueue[0]) === incomingType) {
@@ -358,7 +390,7 @@ const extractPlainTextUrlFromEventData = (eventData) => {
     if (url.protocol !== "http:" && url.protocol !== "https:") return null;
 
     const pathname = url.pathname.toLowerCase();
-    const ALL_EXTENSIONS = [...IMAGE_EXTENSIONS, ...VIDEO_EXTENSIONS, ...AUDIO_EXTENSIONS, ...PDF_EXTENSIONS];
+    const ALL_EXTENSIONS = [...IMAGE_EXTENSIONS, ...VIDEO_EXTENSIONS, ...AUDIO_EXTENSIONS, ...PDF_EXTENSIONS, ...TEXT_EXTENSIONS];
     if (!ALL_EXTENSIONS.some(ext => pathname.endsWith(ext))) return null;
 
     return [text];

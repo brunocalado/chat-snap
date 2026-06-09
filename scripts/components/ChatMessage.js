@@ -1,5 +1,6 @@
 import VideoPopout from "../share-media/VideoPopout.js";
 import PDFPopout from "../share-media/PDFPopout.js";
+import TextPopout from "../share-media/TextPopout.js";
 import { getSetting } from "../utils/Settings.js";
 import { SETTING_SHOW_DOWNLOAD_BUTTON } from "../constants.js";
 
@@ -65,6 +66,12 @@ const addDownloadButtons = (html) => {
     const hint = el.querySelector(".chat-snap-hint");
     if (!hint) return;
     injectDownloadButton(hint, el.dataset.pdfSrc);
+  });
+
+  html.querySelectorAll(".chat-snap-text-item[data-text-src]").forEach((el) => {
+    const hint = el.querySelector(".chat-snap-hint");
+    if (!hint) return;
+    injectDownloadButton(hint, el.dataset.textSrc);
   });
 };
 
@@ -184,6 +191,20 @@ export const initChatMessage = (html) => {
     };
 
     pdfItems.forEach((el) => el.addEventListener("click", clickPdfHandle));
+  }
+
+  const textItems = html.querySelectorAll(".chat-snap-text-item");
+  if (textItems.length > 0) {
+    /** @param {MouseEvent} evt */
+    const clickTextHandle = (evt) => {
+      const target = /** @type {HTMLElement} */ (evt.currentTarget);
+      const src = target.dataset.textSrc;
+      const name = target.dataset.textName ?? "File";
+      const isJson = target.dataset.textJson === "true";
+      new TextPopout(src, name, isJson).render(true);
+    };
+
+    textItems.forEach((el) => el.addEventListener("click", clickTextHandle));
   }
 
   if (getSetting(SETTING_SHOW_DOWNLOAD_BUTTON)) addDownloadButtons(html);

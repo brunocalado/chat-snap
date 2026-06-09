@@ -1,6 +1,6 @@
 # Chat Snap
 
-**Share images, videos, audio, and PDFs in your Foundry VTT chat — as easily as texting a friend.**
+**Share images, videos, audio, PDFs, and text files in your Foundry VTT chat — as easily as texting a friend.**
 
 Drop a file. Paste a link. Hit Enter. Your whole table sees it.
 
@@ -12,7 +12,7 @@ Drop a file. Paste a link. Hit Enter. Your whole table sees it.
 
 ## What It Does
 
-Chat Snap adds image, video, and audio sharing directly to your game chat. No external tools, no copying links manually — just drag, drop, and post.
+Chat Snap adds image, video, audio, and file sharing directly to your game chat. No external tools, no copying links manually — just drag, drop, and post.
 
 Whether you're a GM setting the atmosphere with a dramatic scene illustration, a player sharing a portrait of a new character, or anyone at the table sending a sound clip to complement the moment, Chat Snap keeps everyone in sync.
 
@@ -41,7 +41,10 @@ Audio files embed directly in chat with native browser playback controls. Playba
 ### PDF Sharing
 Drag a PDF onto the chat input to share it. A badge (PDF icon + filename) appears in the upload strip before sending, and again in the posted message. Click the badge to open the PDF in a viewer dialog, which includes an **Open in new tab** button as fallback. The viewer fetches the file with your session credentials, so it works reliably for both GMs and players across browsers.
 
-> **Note:** Only one audio or PDF file can be queued per message. Audio, PDFs, and visual media (images/videos) cannot be mixed in the same message.
+### Text & JSON Files
+Drag a `.txt` or `.json` file onto the chat input to share it. A badge (file icon + filename) appears in the message. Click the badge to open a viewer dialog with the file contents — JSON is automatically pretty-printed. An **Open in new tab** button is available as fallback.
+
+> **Note:** Only one audio, PDF, or text file can be queued per message. Audio, PDFs, text files, and visual media (images/videos) cannot be mixed in the same message.
 
 ## Supported Formats
 
@@ -51,6 +54,7 @@ Drag a PDF onto the chat input to share it. A badge (PDF icon + filename) appear
 | Videos | MP4, WEBM, M4V, OGV |
 | Audio  | MP3, WAV, OGG, OPUS, FLAC, AAC |
 | PDF    | PDF |
+| Text   | TXT, JSON |
 
 ---
 
@@ -86,7 +90,7 @@ Check the roles you want to allow, then save.
 | Upload Location | GM only | Folder where uploaded media files are stored on the server. Default: `uploaded-chat-snap`. |
 | Organize uploads by date | GM only | Groups uploaded files into daily subfolders (e.g. `uploaded-chat-snap/2026-06-08/`). On by default. Disable on hosting platforms where folder creation behaves differently, such as The Forge. |
 | Video Autoplay | GM only | Whether videos play automatically when they appear in chat. On by default. |
-| Show download button on chat media | GM only | Displays a **Download** link below every media item (images, videos, audio, PDFs) in chat. On by default. |
+| Show download button on chat media | GM only | Displays a **Download** link below every media item (images, videos, audio, PDFs, text files) in chat. On by default. |
 | Setup Complete | GM only | Hides the first-run permissions dialog. Uncheck to show it again. |
 
 ---

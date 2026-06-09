@@ -34,7 +34,7 @@ Hooks.once("ready", () => {
   if (!chatMessage) return;
 
   const sidebar = chatMessage.closest("#sidebar") ?? chatMessage.parentElement.parentElement;
-  initUploadArea(sidebar);
+  initUploadArea();
   initChatSidebar(sidebar);
 
   // Show the setup dialog to the GM only when at least one relevant role still lacks

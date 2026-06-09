@@ -89,16 +89,6 @@
   scrollbar-color: var(--chat-snap-scroll-thumb) var(--chat-snap-upload-bg);
 }
 
-/* Expanded sidebar: stack previews vertically alongside the chat column. */
-#ui-right:has(#sidebar-content.expanded) #ui-right-column-1 #chat-snap-chat-upload-area {
-  flex-direction: column;
-  align-items: end;
-  max-height: 94dvh;
-  width: fit-content;
-  justify-self: end;
-  margin-right: -12px;
-}
-
 .chat-snap-upload-area-item {
   display: flex;
   position: relative;

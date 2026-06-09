@@ -28,15 +28,35 @@ const setupHorizontalScrolling = (uploadArea) => {
 };
 
 /**
- * Insert the preview strip just above the chat input.
- * Called from the `ready` hook via module.js.
- * @param {HTMLElement} sidebar  The chat sidebar container.
+ * Keep the preview strip docked immediately above the live chat input. Foundry relocates the
+ * `<prose-mirror id="chat-message">` between the collapsed popout (`#ui-right-column-1`) and the
+ * expanded sidebar (`#sidebar`) on every collapse/expand; the strip is a separate node that does not
+ * travel with it, so it must be re-parented to stay above whichever location currently holds the input.
+ * Both elements carry stable ids, so they are resolved from the live document rather than a captured
+ * (and possibly relocated) container reference.
  * @returns {void}
  */
-export const initUploadArea = (sidebar) => {
+export const anchorUploadArea = () => {
+  const uploadArea = document.querySelector("#chat-snap-chat-upload-area");
+  const chatMessage = document.querySelector("#chat-message");
+  if (!uploadArea || !chatMessage) return;
+  if (chatMessage.previousElementSibling === uploadArea) return;
+  chatMessage.before(uploadArea);
+};
+
+/**
+ * Create the preview strip, dock it above the chat input, and keep it docked when the sidebar is
+ * collapsed/expanded (which relocates the chat input).
+ * Called from the `ready` hook via module.js.
+ * @returns {void}
+ */
+export const initUploadArea = () => {
   const uploadArea = createUploadArea();
-  const chatMessage = sidebar.querySelector("#chat-message");
-  if (chatMessage) chatMessage.before(uploadArea);
+  document.querySelector("#chat-message")?.before(uploadArea);
 
   setupHorizontalScrolling(uploadArea);
+
+  // collapseSidebar fires when the sidebar toggles, which moves the chat input between the popout and
+  // the sidebar. Re-dock on the next frame, after Foundry has finished relocating the input.
+  Hooks.on("collapseSidebar", () => requestAnimationFrame(anchorUploadArea));
 };

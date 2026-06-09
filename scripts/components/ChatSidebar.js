@@ -92,7 +92,7 @@ export const preCreateChatMessageHandler = (sidebar) => (chatMessage, userOption
   chatMessage._source.content = content;
   messageOptions.chatBubble = false;
 
-  removeAllFromQueue(sidebar);
+  removeAllFromQueue();
   hookIsHandlingTheMessage = false;
   uploadState.off();
 };
@@ -118,7 +118,7 @@ const emptyChatEventHandler = (sidebar) => async (evt) => {
     content: messageTemplate(mediaQueue),
     style: CONST.CHAT_MESSAGE_STYLES.OOC,
   });
-  removeAllFromQueue(sidebar);
+  removeAllFromQueue();
   uploadState.off();
   eventIsHandlingTheMessage = false;
 };
@@ -151,7 +151,7 @@ const pastAndDropEventHandler = (sidebar) => async (evt) => {
 
   processingDropOrPaste = true;
   try {
-    await processDropAndPaste(eventData, sidebar);
+    await processDropAndPaste(eventData);
   } finally {
     processingDropOrPaste = false;
     uploadState.off();

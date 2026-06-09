@@ -1,5 +1,6 @@
 import { ORIGIN_FOLDER, randomString, userCanUpload } from "../utils/Utils.js";
 import { htmlToElement } from "../helpers.js";
+import { anchorUploadArea } from "../components/UploadArea.js";
 import { getSetting, createUploadFolder } from "../utils/Settings.js";
 import { MODULE_ID, SETTING_USE_DATE_FOLDERS } from "../constants.js";
 
@@ -238,11 +239,13 @@ const queueConflicts = (incomingType) => {
  * by the caller (the drop/paste handler), not this function, so the indicator can show from the very
  * start of the gesture and stay up until every queued item finishes.
  * @param {object} saveValue  The media descriptor.
- * @param {HTMLElement} sidebar  The chat sidebar container.
  * @returns {Promise<void>}
  */
-const addMediaToQueue = async (saveValue, sidebar) => {
-  const uploadArea = sidebar.querySelector("#chat-snap-chat-upload-area");
+const addMediaToQueue = async (saveValue) => {
+  // Re-dock the strip above the live chat input first: the input may have moved (sidebar collapse/
+  // expand) since it was last positioned, and the strip must follow it wherever it now lives.
+  anchorUploadArea();
+  const uploadArea = document.querySelector("#chat-snap-chat-upload-area");
   if (!uploadArea) return;
 
   const incomingType = getMediaType(saveValue);
@@ -280,16 +283,15 @@ const addMediaToQueue = async (saveValue, sidebar) => {
  * Read a single local file as a data URL and queue it. Resolves once the item is queued (or the read
  * fails), so callers can await full completion of a drop/paste before hiding the loading bar.
  * @param {File} file
- * @param {HTMLElement} sidebar
  * @returns {Promise<void>}
  */
-const readAndQueueFile = (file, sidebar) =>
+const readAndQueueFile = (file) =>
   new Promise((resolve) => {
     const reader = new FileReader();
     reader.addEventListener("load", async (evt) => {
       const imageSrc = evt.target?.result;
       const saveValue = { type: file.type, name: file.name, imageSrc, id: randomString(), file };
-      await addMediaToQueue(saveValue, sidebar);
+      await addMediaToQueue(saveValue);
       resolve();
     });
     reader.addEventListener("error", () => {
@@ -303,17 +305,16 @@ const readAndQueueFile = (file, sidebar) =>
  * Read and queue a list of local files dragged onto the chat input. Awaits every read so the
  * surrounding loading-bar guard stays active until all files are processed.
  * @param {FileList|File[]} files
- * @param {HTMLElement} sidebar
  * @returns {Promise<void>}
  */
-export const processFiles = async (files, sidebar) => {
+export const processFiles = async (files) => {
   const reads = [];
   for (const file of files) {
     if (!isAllowedFile(file)) {
       console.warn(`Chat Snap: File type not allowed: ${file.name}`);
       continue;
     }
-    reads.push(readAndQueueFile(file, sidebar));
+    reads.push(readAndQueueFile(file));
   }
   await Promise.all(reads);
 };
@@ -410,16 +411,15 @@ export const eventDataContainsMedia = (eventData) => {
 /**
  * Queue media from a paste or drop: prefer image URLs in the payload, otherwise read files.
  * @param {DataTransfer} eventData  The clipboardData or dataTransfer payload.
- * @param {HTMLElement} sidebar
  * @returns {Promise<void>}
  */
-export const processDropAndPaste = async (eventData, sidebar) => {
+export const processDropAndPaste = async (eventData) => {
   if (!eventData) return;
 
   const urlsFromEventDataHandler = async (urls) => {
     for (let i = 0; i < urls.length; i++) {
       const saveValue = { imageSrc: urls[i], id: randomString() };
-      await addMediaToQueue(saveValue, sidebar);
+      await addMediaToQueue(saveValue);
     }
   };
 
@@ -431,13 +431,13 @@ export const processDropAndPaste = async (eventData, sidebar) => {
     const filename = new URL(plainUrls[0]).pathname.split("/").pop();
     for (const url of plainUrls) {
       const saveValue = { imageSrc: url, id: randomString(), name: filename };
-      await addMediaToQueue(saveValue, sidebar);
+      await addMediaToQueue(saveValue);
     }
     return;
   }
 
   const filesExtracted = extractFilesFromEventData(eventData);
-  if (filesExtracted && filesExtracted.length) return await processFiles(filesExtracted, sidebar);
+  if (filesExtracted && filesExtracted.length) return await processFiles(filesExtracted);
 };
 
 /** @returns {object[]}  The current preview queue. */
@@ -445,15 +445,16 @@ export const getMediaQueue = () => mediaQueue;
 
 /**
  * Empty the preview queue and clear the strip.
- * @param {HTMLElement} sidebar
  * @returns {void}
  */
-export const removeAllFromQueue = (sidebar) => {
+export const removeAllFromQueue = () => {
+  const uploadArea = document.querySelector("#chat-snap-chat-upload-area");
+
   while (mediaQueue.length) {
     const item = mediaQueue.pop();
     if (!item) continue;
-    sidebar.querySelector(`[id="${item.id}"]`)?.remove();
+    uploadArea?.querySelector(`[id="${item.id}"]`)?.remove();
   }
 
-  sidebar.querySelector("#chat-snap-chat-upload-area")?.classList.add("hidden");
+  uploadArea?.classList.add("hidden");
 };

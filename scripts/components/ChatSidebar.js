@@ -4,6 +4,34 @@ import {
   processDropAndPaste,
   removeAllFromQueue,
 } from "../processors/FileProcessor.js";
+
+/** @see FileProcessor.js — duplicated here (only 2 call sites; below the 3-site threshold for a shared helper per §10). */
+const DOWNLOADABLE_ICON_MAP = {
+  ".doc": "fa-regular fa-file-word",
+  ".docx": "fa-regular fa-file-word",
+  ".odt": "fa-regular fa-file-word",
+  ".xls": "fa-regular fa-file-excel",
+  ".xlsx": "fa-regular fa-file-excel",
+  ".ods": "fa-regular fa-file-excel",
+  ".csv": "fa-solid fa-table",
+  ".ppt": "fa-regular fa-file-powerpoint",
+  ".pptx": "fa-regular fa-file-powerpoint",
+  ".odp": "fa-regular fa-file-powerpoint",
+  ".zip": "fa-solid fa-file-zipper",
+  ".7z": "fa-solid fa-file-zipper",
+  ".rar": "fa-solid fa-file-zipper",
+  ".epub": "fa-solid fa-book",
+  ".html": "fa-regular fa-file-code",
+};
+
+/**
+ * @param {string} [name]
+ * @returns {string}
+ */
+const getDownloadableIcon = (name) => {
+  const ext = (name ?? "").substring((name ?? "").lastIndexOf(".")).toLowerCase();
+  return DOWNLOADABLE_ICON_MAP[ext] ?? "fa-regular fa-file";
+};
 import { getUploadingStates } from "./Loader.js";
 import { getSetting } from "../utils/Settings.js";
 
@@ -56,6 +84,18 @@ const mediaTemplate = (mediaProps) => {
   <i class="${isJson ? "fa-solid fa-code" : "fa-regular fa-file-lines"}"></i>
   <span class="chat-snap-text-filename">${shortName}</span>
   <p class="chat-snap-hint">Click to view</p>
+</div>`;
+  }
+
+  const isDownloadable = !!mediaProps.name?.match(/\.(doc|docx|odt|xls|xlsx|ods|csv|ppt|pptx|odp|zip|7z|rar|epub|html)$/i);
+  if (isDownloadable) {
+    const shortName = (mediaProps.name || "file").replace(/\.[^.]+$/, "");
+    return `<div class="chat-snap-media-item chat-snap-downloadable-item"
+     data-download-src="${mediaProps.imageSrc}"
+     data-download-name="${shortName}">
+  <i class="${getDownloadableIcon(mediaProps.name)}"></i>
+  <span class="chat-snap-downloadable-filename">${shortName}</span>
+  <p class="chat-snap-hint">Click to download</p>
 </div>`;
   }
 

@@ -44,7 +44,10 @@ Drag a PDF onto the chat input to share it. A badge (PDF icon + filename) appear
 ### Text & JSON Files
 Drag a `.txt` or `.json` file onto the chat input to share it. A badge (file icon + filename) appears in the message. Click the badge to open a viewer dialog with the file contents — JSON is automatically pretty-printed. An **Open in new tab** button is available as fallback.
 
-> **Note:** Only one audio, PDF, or text file can be queued per message. Audio, PDFs, text files, and visual media (images/videos) cannot be mixed in the same message.
+### Downloadable Files
+Drag any of the supported document, spreadsheet, presentation, archive, ebook, or HTML file types onto the chat input. A badge with the appropriate icon and filename appears in the message. Clicking the badge opens the file in a new browser tab — the browser handles it from there (downloads it or renders it depending on the file type). Each format shows a type-specific icon (Word, Excel, PowerPoint, archive, etc.).
+
+> **Note:** Only one audio, PDF, text, or downloadable file can be queued per message. These types cannot be mixed with each other or with visual media (images/videos) in the same message.
 
 ## Supported Formats
 
@@ -55,6 +58,11 @@ Drag a `.txt` or `.json` file onto the chat input to share it. A badge (file ico
 | Audio  | MP3, WAV, OGG, OPUS, FLAC, AAC |
 | PDF    | PDF |
 | Text   | TXT, JSON |
+| Documents | DOC, DOCX, ODT |
+| Spreadsheets | XLS, XLSX, ODS, CSV |
+| Presentations | PPT, PPTX, ODP |
+| Archives | ZIP, 7Z, RAR |
+| Other | EPUB, HTML |
 
 ---
 

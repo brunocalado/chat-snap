@@ -34,6 +34,20 @@ export const SETTING_SHOW_DOWNLOAD_BUTTON = "showDownloadButton";
 export const SETTING_MAX_FILE_SIZE_MB = "maxFileSizeMb";
 
 /**
+ * Setting key for the master toggle that enables re-encoding uploaded raster images to WebP.
+ * Enabled by default. Used in Settings.js (registration) and FileProcessor.js (compression gate).
+ * @type {string}
+ */
+export const SETTING_COMPRESS_IMAGES = "compressImages";
+
+/**
+ * Setting key for the WebP re-encoding quality (0.1–1.0). Only applies when SETTING_COMPRESS_IMAGES
+ * is enabled. Used in Settings.js (registration) and FileProcessor.js (toBlob quality argument).
+ * @type {string}
+ */
+export const SETTING_IMAGE_QUALITY = "imageQuality";
+
+/**
  * Setting key storing the byte total from the last manual storage check.
  * Persisted so the StorageDialog can show the result across sessions.
  * @type {string}

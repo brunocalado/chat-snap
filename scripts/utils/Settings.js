@@ -1,4 +1,4 @@
-import { MODULE_ID, SETTING_SETUP_COMPLETE, SETTING_USE_DATE_FOLDERS, SETTING_SHOW_DOWNLOAD_BUTTON, SETTING_MAX_FILE_SIZE_MB, SETTING_STORAGE_LAST_CHECK_BYTES, SETTING_STORAGE_LAST_CHECK_DATE } from "../constants.js";
+import { MODULE_ID, SETTING_SETUP_COMPLETE, SETTING_USE_DATE_FOLDERS, SETTING_SHOW_DOWNLOAD_BUTTON, SETTING_MAX_FILE_SIZE_MB, SETTING_COMPRESS_IMAGES, SETTING_IMAGE_QUALITY, SETTING_STORAGE_LAST_CHECK_BYTES, SETTING_STORAGE_LAST_CHECK_DATE } from "../constants.js";
 import { ORIGIN_FOLDER } from "./Utils.js";
 import { StorageDialog } from "../storage/StorageDialog.js";
 
@@ -105,6 +105,31 @@ export const getSettings = () => [
       scope: "world",
       config: false,
       restricted: true,
+    },
+  },
+  {
+    key: SETTING_COMPRESS_IMAGES,
+    options: {
+      name: "Compress images to WebP",
+      hint: "When enabled, BMP, JPEG, JPG, and PNG uploads are re-encoded to WebP to save storage. Enabled by default.",
+      type: Boolean,
+      default: true,
+      scope: "world",
+      config: true,
+      restricted: true,
+    },
+  },
+  {
+    key: SETTING_IMAGE_QUALITY,
+    options: {
+      name: "WebP compression quality",
+      hint: "Quality of WebP re-encoding, from 0.1 (smallest file) to 1.0 (best quality). Only applies when image compression is enabled.",
+      type: Number,
+      default: 0.85,
+      scope: "world",
+      config: true,
+      restricted: true,
+      range: { min: 0.1, max: 1.0, step: 0.05 },
     },
   },
   {

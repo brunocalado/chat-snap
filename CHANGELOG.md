@@ -1,3 +1,8 @@
+# 0.1.0
+
+### Added
+- **Optional image compression to WebP.** BMP, JPEG, JPG, and PNG uploads are re-encoded to WebP to save storage, controlled by the new **Compress images to WebP** setting (enabled by default). A **WebP compression quality** setting (0.1–1.0, default 0.85) tunes the trade-off. Eligible images are compressed before the size-limit check, so an oversized original that fits once re-encoded is still accepted — only the compressed result is rejected if it still exceeds the limit. The original file is kept untouched when re-encoding would not make it smaller or fails.
+
 # 0.0.9
 
 ### Added

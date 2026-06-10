@@ -2,7 +2,7 @@ import { ORIGIN_FOLDER, randomString, userCanUpload } from "../utils/Utils.js";
 import { htmlToElement } from "../helpers.js";
 import { anchorUploadArea } from "../components/UploadArea.js";
 import { getSetting, createUploadFolder } from "../utils/Settings.js";
-import { MODULE_ID, SETTING_USE_DATE_FOLDERS, SETTING_MAX_FILE_SIZE_MB, MODEL_EXTENSIONS } from "../constants.js";
+import { MODULE_ID, SETTING_USE_DATE_FOLDERS, SETTING_MAX_FILE_SIZE_MB, SETTING_COMPRESS_IMAGES, SETTING_IMAGE_QUALITY, MODEL_EXTENSIONS } from "../constants.js";
 
 const RESTRICTED_DOMAINS = ["static.wikia"];
 
@@ -11,6 +11,10 @@ const DOM_PARSER = new DOMParser();
 let mediaQueue = [];
 
 const IMAGE_EXTENSIONS = [".apng", ".avif", ".bmp", ".gif", ".jpeg", ".jpg", ".png", ".svg", ".tiff", ".webp"];
+// Subset of IMAGE_EXTENSIONS that decode natively in Foundry's Chromium/Electron runtime and can be
+// re-encoded to WebP via canvas. TIFF is excluded — <img>/canvas cannot decode it there. Animated/
+// vector formats (.gif, .apng, .svg, .webp, .avif) are left out so they pass through untouched.
+const COMPRESSIBLE_IMAGE_EXTENSIONS = [".bmp", ".jpeg", ".jpg", ".png"];
 const VIDEO_EXTENSIONS = [".webm", ".m4v", ".mp4", ".ogv"];
 // m4a and mid are in Foundry's upload whitelist and play via the native <audio> element.
 const AUDIO_EXTENSIONS = [".mp3", ".wav", ".ogg", ".opus", ".flac", ".aac", ".m4a", ".mid"];
@@ -36,6 +40,9 @@ const fileExtension = (file) => {
 
 /** @param {File|DataTransferItem} file @returns {boolean} */
 const isFileImage = (file) => IMAGE_EXTENSIONS.includes(fileExtension(file));
+
+/** @param {File|DataTransferItem} file @returns {boolean} */
+const isCompressibleImage = (file) => COMPRESSIBLE_IMAGE_EXTENSIONS.includes(fileExtension(file));
 
 /** @param {File|DataTransferItem} file @returns {boolean} */
 const isFileVideo = (file) => VIDEO_EXTENSIONS.includes(fileExtension(file));
@@ -436,27 +443,77 @@ const readAndQueueFile = (file) =>
   });
 
 /**
+ * Re-encode a raster image to WebP using the Canvas API. Returns a NEW File whose name carries a
+ * `.webp` extension and whose type is `image/webp`, so the downstream upload path (`uploadFile`,
+ * which derives the extension from the name) writes it correctly. Resolves the original file
+ * unchanged on any decode/encode failure — or when the WebP is not actually smaller — so the upload
+ * never breaks or grows. Caller gates this behind SETTING_COMPRESS_IMAGES and isCompressibleImage().
+ * @param {File} file  A BMP/JPEG/JPG/PNG file (see COMPRESSIBLE_IMAGE_EXTENSIONS).
+ * @param {number} quality  WebP quality in the 0.0–1.0 range.
+ * @returns {Promise<File>}
+ */
+const compressImageToWebp = (file, quality) =>
+  new Promise((resolve) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const canvas = document.createElement("canvas");
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      canvas.getContext("2d").drawImage(img, 0, 0);
+      canvas.toBlob(
+        (blob) => {
+          // Keep the original when the WebP failed or didn't actually shrink the file.
+          if (!blob || blob.size >= file.size) {
+            resolve(file);
+            return;
+          }
+          const base = file.name.substring(0, file.name.lastIndexOf("."));
+          resolve(new File([blob], `${base}.webp`, { type: "image/webp" }));
+        },
+        "image/webp",
+        quality,
+      );
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      resolve(file);
+    };
+    img.src = url;
+  });
+
+/**
  * Read and queue a list of local files dragged onto the chat input. Awaits every read so the
- * surrounding loading-bar guard stays active until all files are processed.
+ * surrounding loading-bar guard stays active until all files are processed. Eligible images are
+ * compressed to WebP BEFORE the size-limit check, so an oversized original that fits once re-encoded
+ * is still accepted; only the resulting file's size is enforced against the limit.
  * @param {FileList|File[]} files
  * @returns {Promise<void>}
  */
 export const processFiles = async (files) => {
   const maxBytes = getSetting(SETTING_MAX_FILE_SIZE_MB) * 1024 * 1024;
+  const compressEnabled = getSetting(SETTING_COMPRESS_IMAGES);
   const reads = [];
   for (const file of files) {
     if (!isAllowedFile(file)) {
       console.warn(`Chat Snap: File type not allowed: ${file.name}`);
       continue;
     }
+
+    const processedFile = compressEnabled && isCompressibleImage(file)
+      ? await compressImageToWebp(file, getSetting(SETTING_IMAGE_QUALITY))
+      : file;
+
     // GMs bypass the file size limit entirely.
-    if (!game.user.isGM && file.size > maxBytes) {
+    if (!game.user.isGM && processedFile.size > maxBytes) {
       ui.notifications?.warn(
         `Chat Snap: "${file.name}" exceeds the ${getSetting(SETTING_MAX_FILE_SIZE_MB)} MB limit and was not uploaded.`
       );
       continue;
     }
-    reads.push(readAndQueueFile(file));
+
+    reads.push(readAndQueueFile(processedFile));
   }
   await Promise.all(reads);
 };

@@ -1,0 +1,20 @@
+<div class="chat-snap-model-wrapper">
+  <div class="chat-snap-model-toolbar">
+    <a class="chat-snap-model-download" href="{{src}}" download>
+      <i class="fa-solid fa-download"></i> Download
+    </a>
+  </div>
+  <model-viewer
+    class="chat-snap-model-frame"
+    src="{{src}}"
+    camera-controls
+    auto-rotate
+    shadow-intensity="1"
+    touch-action="pan-y"
+    interaction-prompt="none"
+  >
+    <div class="chat-snap-model-fallback" slot="poster">
+      <p>Loading 3D model…</p>
+    </div>
+  </model-viewer>
+</div>

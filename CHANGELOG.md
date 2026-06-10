@@ -1,3 +1,8 @@
+# 0.0.9
+
+### Added
+- **Interactive 3D viewer for glTF models.** `.glb` and `.gltf` files now open in a resizable popout with an interactive 3D viewer (orbit, zoom, auto-rotate) instead of only downloading. The model is never shown inline in chat — the message displays a cube badge ("Click to view 3D"), and clicking it opens the viewer. A **Download** button is available in the viewer's toolbar. Other 3D/game formats (`.fbx`, `.obj`, `.stl`, `.usdz`, `.mtl`, `.basis`, `.ktx2`) are not renderable by the viewer and remain download-only.
+
 # 0.0.8
 
 ### Changed

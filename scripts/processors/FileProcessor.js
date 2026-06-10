@@ -2,7 +2,7 @@ import { ORIGIN_FOLDER, randomString, userCanUpload } from "../utils/Utils.js";
 import { htmlToElement } from "../helpers.js";
 import { anchorUploadArea } from "../components/UploadArea.js";
 import { getSetting, createUploadFolder } from "../utils/Settings.js";
-import { MODULE_ID, SETTING_USE_DATE_FOLDERS, SETTING_MAX_FILE_SIZE_MB } from "../constants.js";
+import { MODULE_ID, SETTING_USE_DATE_FOLDERS, SETTING_MAX_FILE_SIZE_MB, MODEL_EXTENSIONS } from "../constants.js";
 
 const RESTRICTED_DOMAINS = ["static.wikia"];
 
@@ -17,11 +17,12 @@ const AUDIO_EXTENSIONS = [".mp3", ".wav", ".ogg", ".opus", ".flac", ".aac", ".m4
 const PDF_EXTENSIONS = [".pdf"];
 // All text/data formats allowed by Foundry's upload whitelist that are viewable as text.
 const TEXT_EXTENSIONS = [".txt", ".json", ".csv", ".md", ".tsv", ".xml", ".yml", ".yaml"];
-// Foundry-allowed formats with no inline viewer: fonts and 3D/game assets.
+// Foundry-allowed formats with no inline viewer: fonts and 3D/game assets <model-viewer> can't render.
+// glTF formats (.glb, .gltf) are handled separately via MODEL_EXTENSIONS — they open in ModelPopout.
 const DOWNLOADABLE_EXTENSIONS = [
   ".otf", ".ttf", ".woff", ".woff2",
   ".basis", ".ktx2",
-  ".fbx", ".glb", ".gltf", ".mtl", ".obj", ".stl", ".usdz",
+  ".fbx", ".mtl", ".obj", ".stl", ".usdz",
 ];
 
 /**
@@ -52,9 +53,12 @@ const isFileText = (file) => TEXT_EXTENSIONS.includes(fileExtension(file));
 const isFileDownloadable = (file) => DOWNLOADABLE_EXTENSIONS.includes(fileExtension(file));
 
 /** @param {File|DataTransferItem} file @returns {boolean} */
+const isFileModel = (file) => MODEL_EXTENSIONS.includes(fileExtension(file));
+
+/** @param {File|DataTransferItem} file @returns {boolean} */
 const isAllowedFile = (file) =>
   isFileImage(file) || isFileVideo(file) || isFileAudio(file) ||
-  isFilePdf(file) || isFileText(file) || isFileDownloadable(file);
+  isFilePdf(file) || isFileText(file) || isFileDownloadable(file) || isFileModel(file);
 
 /**
  * Resolve the active FilePicker implementation so host environments can substitute their own.
@@ -108,14 +112,24 @@ const isSaveValueDownloadable = (saveValue) =>
   !!saveValue.name && isFileDownloadable({ name: saveValue.name });
 
 /**
- * Classify a queued item into one of five mutually-exclusive media categories.
+ * True when this save value is a viewable 3D model (glTF family — opens in ModelPopout).
+ * Relies on filename extension because MIME types for glTF formats are inconsistent across OS/browser.
+ * @param {{name?: string}} saveValue
+ * @returns {boolean}
+ */
+const isSaveValueModel = (saveValue) =>
+  !!saveValue.name && isFileModel({ name: saveValue.name });
+
+/**
+ * Classify a queued item into one of six mutually-exclusive media categories.
  * @param {{type?: string, name?: string}} saveValue
- * @returns {"audio"|"pdf"|"text"|"downloadable"|"visual"}
+ * @returns {"audio"|"pdf"|"text"|"model"|"downloadable"|"visual"}
  */
 const getMediaType = (saveValue) => {
   if (isSaveValueAudio(saveValue)) return "audio";
   if (isSaveValuePdf(saveValue)) return "pdf";
   if (isSaveValueText(saveValue)) return "text";
+  if (isSaveValueModel(saveValue)) return "model";
   if (isSaveValueDownloadable(saveValue)) return "downloadable";
   return "visual";
 };
@@ -185,6 +199,17 @@ const createMediaPreview = ({ imageSrc, id, type, name }) => {
                 <i class="chat-snap-remove-icon fa-regular fa-circle-xmark"></i>
                 <i class="chat-snap-text-icon ${getTextIcon(ext)}"></i>
                 <span class="chat-snap-text-filename">${shortName}</span>
+            </div>`,
+    );
+  }
+
+  if (!!name && isFileModel({ name })) {
+    const shortName = (name || "model").replace(/\.[^.]+$/, "");
+    return htmlToElement(
+      `<div id="${id}" class="chat-snap-upload-area-item chat-snap-model-preview">
+                <i class="chat-snap-remove-icon fa-regular fa-circle-xmark"></i>
+                <i class="chat-snap-model-icon fa-solid fa-cube"></i>
+                <span class="chat-snap-model-filename">${shortName}</span>
             </div>`,
     );
   }
@@ -334,8 +359,8 @@ const uploadFile = async (saveValue) => {
 
 /**
  * Return true when the incoming item's media type differs from what is already queued.
- * Audio, PDF, text, downloadable, and visual media (image/video) cannot coexist in the same message.
- * @param {"audio"|"pdf"|"text"|"downloadable"|"visual"} incomingType
+ * Audio, PDF, text, model, downloadable, and visual media (image/video) cannot coexist in the same message.
+ * @param {"audio"|"pdf"|"text"|"model"|"downloadable"|"visual"} incomingType
  * @returns {boolean}
  */
 const queueConflicts = (incomingType) => {
@@ -358,7 +383,7 @@ const addMediaToQueue = async (saveValue) => {
   if (!uploadArea) return;
 
   const incomingType = getMediaType(saveValue);
-  const isSingleSlot = incomingType === "audio" || incomingType === "pdf" || incomingType === "text" || incomingType === "downloadable";
+  const isSingleSlot = incomingType === "audio" || incomingType === "pdf" || incomingType === "text" || incomingType === "model" || incomingType === "downloadable";
 
   // Single-slot types silently replace an existing item of the same type.
   if (isSingleSlot && mediaQueue.length && getMediaType(mediaQueue[0]) === incomingType) {
@@ -477,7 +502,7 @@ const extractPlainTextUrlFromEventData = (eventData) => {
     const pathname = url.pathname.toLowerCase();
     const ALL_EXTENSIONS = [
       ...IMAGE_EXTENSIONS, ...VIDEO_EXTENSIONS, ...AUDIO_EXTENSIONS,
-      ...PDF_EXTENSIONS, ...TEXT_EXTENSIONS, ...DOWNLOADABLE_EXTENSIONS,
+      ...PDF_EXTENSIONS, ...TEXT_EXTENSIONS, ...DOWNLOADABLE_EXTENSIONS, ...MODEL_EXTENSIONS,
     ];
     if (!ALL_EXTENSIONS.some(ext => pathname.endsWith(ext))) return null;
 

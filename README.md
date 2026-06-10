@@ -47,10 +47,13 @@ Drag a PDF onto the chat input to share it. A badge (PDF icon + filename) appear
 ### Text & Data Files
 Drag a `.txt`, `.json`, `.csv`, `.md`, `.tsv`, `.xml`, `.yml`, or `.yaml` file onto the chat input to share it. A badge with a type-specific icon appears in the message. Click the badge to open a viewer dialog with the file contents — JSON is automatically pretty-printed. An **Open in new tab** button is available as fallback.
 
-### Fonts & 3D Assets
-Drag a font (`.otf`, `.ttf`, `.woff`, `.woff2`) or 3D model/asset file (`.glb`, `.gltf`, `.fbx`, `.obj`, `.stl`, `.usdz`, `.mtl`, `.basis`, `.ktx2`) onto the chat input. A badge with a type-specific icon (font or cube) appears in the message. Clicking it opens the file in a new browser tab.
+### 3D Model Viewer
+Drag a glTF model (`.glb` or `.gltf`) onto the chat input. A cube badge appears in the message — clicking it opens an interactive 3D viewer in a resizable popout, where you can orbit, zoom, and watch the model auto-rotate. The model is never embedded directly in chat; it only renders when you open the viewer. A **Download** button is available in the viewer's toolbar.
 
-> **Note:** Only one audio, PDF, text, or asset file can be queued per message. These types cannot be mixed with each other or with visual media (images/videos) in the same message.
+### Fonts & Other 3D/Game Assets
+Drag a font (`.otf`, `.ttf`, `.woff`, `.woff2`) or other 3D/game asset (`.fbx`, `.obj`, `.stl`, `.usdz`, `.mtl`, `.basis`, `.ktx2`) onto the chat input. A badge with a type-specific icon (font or cube) appears in the message. Clicking it opens the file in a new browser tab to download. (These formats aren't supported by the in-app 3D viewer, which renders glTF models only.)
+
+> **Note:** Only one audio, PDF, text, model, or asset file can be queued per message. These types cannot be mixed with each other or with visual media (images/videos) in the same message.
 
 ## Supported Formats
 
@@ -62,7 +65,8 @@ Drag a font (`.otf`, `.ttf`, `.woff`, `.woff2`) or 3D model/asset file (`.glb`, 
 | PDF    | PDF |
 | Text / Data | TXT, JSON, CSV, MD, TSV, XML, YML, YAML |
 | Fonts | OTF, TTF, WOFF, WOFF2 |
-| 3D Assets | GLB, GLTF, FBX, OBJ, STL, USDZ, MTL, BASIS, KTX2 |
+| 3D Models (interactive viewer) | GLB, GLTF |
+| 3D / Game Assets (download only) | FBX, OBJ, STL, USDZ, MTL, BASIS, KTX2 |
 
 ---
 

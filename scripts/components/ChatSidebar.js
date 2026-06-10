@@ -6,6 +6,7 @@ import {
 } from "../processors/FileProcessor.js";
 import { getUploadingStates } from "./Loader.js";
 import { getSetting } from "../utils/Settings.js";
+import { MODEL_EXTENSIONS } from "../constants.js";
 
 let hookIsHandlingTheMessage = false;
 let eventIsHandlingTheMessage = false;
@@ -62,7 +63,9 @@ const mediaTemplate = (mediaProps) => {
     mediaProps.type === "application/yaml" ||
     TEXT_EXTS.includes(nameExt);
 
-  const DOWNLOAD_EXTS = [".otf", ".ttf", ".woff", ".woff2", ".basis", ".ktx2", ".fbx", ".glb", ".gltf", ".mtl", ".obj", ".stl", ".usdz"];
+  const isModel = MODEL_EXTENSIONS.includes(nameExt);
+
+  const DOWNLOAD_EXTS = [".otf", ".ttf", ".woff", ".woff2", ".basis", ".ktx2", ".fbx", ".mtl", ".obj", ".stl", ".usdz"];
   const isDownloadable = DOWNLOAD_EXTS.includes(nameExt);
 
   if (isAudio) {
@@ -94,6 +97,17 @@ const mediaTemplate = (mediaProps) => {
   <i class="${getTextIcon(mediaProps.name)}"></i>
   <span class="chat-snap-text-filename">${shortName}</span>
   <p class="chat-snap-hint">Click to view</p>
+</div>`;
+  }
+
+  if (isModel) {
+    const shortName = (mediaProps.name || "model").replace(/\.[^.]+$/, "");
+    return `<div class="chat-snap-media-item chat-snap-model-item"
+     data-model-src="${mediaProps.imageSrc}"
+     data-model-name="${shortName}">
+  <i class="fa-solid fa-cube"></i>
+  <span class="chat-snap-model-filename">${shortName}</span>
+  <p class="chat-snap-hint">Click to view 3D</p>
 </div>`;
   }
 

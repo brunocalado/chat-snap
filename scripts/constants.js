@@ -45,3 +45,13 @@ export const SETTING_STORAGE_LAST_CHECK_BYTES = "storageLastCheckBytes";
  * @type {string}
  */
 export const SETTING_STORAGE_LAST_CHECK_DATE = "storageLastCheckDate";
+
+/**
+ * 3D model file extensions that open in the interactive ModelPopout viewer (powered by
+ * the <model-viewer> web component). Only glTF-family formats are renderable; other
+ * 3D/game formats (.fbx, .obj, .stl, .usdz, .mtl) stay download-only in FileProcessor's
+ * "downloadable" category because <model-viewer> cannot load them.
+ * Used in FileProcessor.js (classification + upload preview) and ChatSidebar.js (message template).
+ * @type {string[]}
+ */
+export const MODEL_EXTENSIONS = [".glb", ".gltf"];

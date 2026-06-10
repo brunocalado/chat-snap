@@ -1,6 +1,7 @@
 import VideoPopout from "../share-media/VideoPopout.js";
 import PDFPopout from "../share-media/PDFPopout.js";
 import TextPopout from "../share-media/TextPopout.js";
+import ModelPopout from "../share-media/ModelPopout.js";
 import { getSetting } from "../utils/Settings.js";
 import { SETTING_SHOW_DOWNLOAD_BUTTON } from "../constants.js";
 
@@ -78,6 +79,12 @@ const addDownloadButtons = (html) => {
     const hint = el.querySelector(".chat-snap-hint");
     if (!hint) return;
     injectDownloadButton(hint, el.dataset.downloadSrc);
+  });
+
+  html.querySelectorAll(".chat-snap-model-item[data-model-src]").forEach((el) => {
+    const hint = el.querySelector(".chat-snap-hint");
+    if (!hint) return;
+    injectDownloadButton(hint, el.dataset.modelSrc);
   });
 
 };
@@ -208,6 +215,19 @@ export const initChatMessage = (html) => {
       window.open(target.dataset.downloadSrc, "_blank", "noopener,noreferrer");
     };
     downloadItems.forEach((el) => el.addEventListener("click", clickDownloadHandle));
+  }
+
+  const modelItems = html.querySelectorAll(".chat-snap-model-item");
+  if (modelItems.length > 0) {
+    /** @param {MouseEvent} evt */
+    const clickModelHandle = (evt) => {
+      const target = /** @type {HTMLElement} */ (evt.currentTarget);
+      const src = target.dataset.modelSrc;
+      const name = target.dataset.modelName ?? "3D Model";
+      new ModelPopout(src, name).render(true);
+    };
+
+    modelItems.forEach((el) => el.addEventListener("click", clickModelHandle));
   }
 
   const textItems = html.querySelectorAll(".chat-snap-text-item");

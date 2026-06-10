@@ -90,12 +90,21 @@
     pointer-events: auto;
     cursor: pointer;
     font-style: normal;
-    color: var(--color-text-hyperlink, var(--color-warm-1));
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: #2e7d32;
+    color: #fff;
     text-decoration: none;
     white-space: nowrap;
+    font-size: 0.95em;
+    line-height: 1.6;
 
     &:hover {
-      text-decoration: underline;
+      background: #1b5e20;
+      text-decoration: none;
     }
   }
 }

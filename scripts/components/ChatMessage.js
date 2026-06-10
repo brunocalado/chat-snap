@@ -20,7 +20,7 @@ const injectDownloadButton = (hintEl, src, downloadOnly = false) => {
   btn.className = "chat-snap-download-btn";
   btn.href = src;
   btn.setAttribute("download", src.split("/").pop().split("?")[0] || "");
-  btn.textContent = "Download";
+  btn.innerHTML = '<i class="fas fa-download"></i> Download';
   // Prevent the click from bubbling to parent popout handlers (critical for .chat-snap-pdf-item).
   btn.addEventListener("click", (evt) => evt.stopPropagation());
   hintEl.appendChild(btn);

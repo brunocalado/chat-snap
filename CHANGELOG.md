@@ -1,3 +1,8 @@
+# 0.0.8
+
+### Changed
+- Download button styling improved: now displays a Font Awesome download icon alongside the text, with a green background and white text for better visibility and contrast.
+
 # 0.0.7
 
 ### Added

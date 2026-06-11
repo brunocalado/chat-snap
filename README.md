@@ -38,6 +38,9 @@ Every media item in chat shows a **Download** link in the hint row below it — 
 ### Storage & Upload Management
 A dedicated **Storage & Upload** dialog (accessible from the module settings panel) lets the GM configure the file size limit and check how much disk space the upload folder is using. Click **Check Usage** to scan the folder — the result and date are saved and shown on the next visit.
 
+### Image Compression
+BMP, JPEG, JPG, and PNG uploads are automatically re-encoded to WebP to save server storage — on by default, and toggleable in module settings. A **WebP compression quality** slider (0.1–1.0, default 0.85) tunes the balance between file size and image quality. Compression runs before the file-size check, so an oversized image that fits once re-encoded is still accepted; it's only rejected if the compressed version still exceeds the limit. If re-encoding wouldn't make a file smaller, the original is kept untouched. Animated and vector formats (GIF, APNG, SVG, WebP, AVIF) and TIFF are never altered.
+
 ### Audio Playback
 Audio files embed directly in chat with native browser playback controls. Playback is client-side only — each player controls their own volume and timing independently, so playing a clip only affects the client that pressed play.
 
@@ -103,6 +106,8 @@ Check the roles you want to allow, then save.
 | Organize uploads by date | GM only | Groups uploaded files into daily subfolders (e.g. `uploaded-chat-snap/2026-06-08/`). On by default. Disable on hosting platforms where folder creation behaves differently, such as The Forge. |
 | Video Autoplay | GM only | Whether videos play automatically when they appear in chat. On by default. |
 | Show download button on chat media | GM only | Displays a **Download** link below every media item (images, videos, audio, PDFs, text files) in chat. On by default. |
+| Compress images to WebP | GM only | Re-encodes BMP, JPEG, JPG, and PNG uploads to WebP to save storage. On by default. |
+| WebP compression quality | GM only | Quality of WebP re-encoding, from 0.1 (smallest file) to 1.0 (best quality). Default: 0.85. Only applies when image compression is enabled. |
 | Setup Complete | GM only | Hides the first-run permissions dialog. Uncheck to show it again. |
 
 ### Storage & Upload Dialog

@@ -1,3 +1,8 @@
+# 0.1.1
+
+### Changed
+- **WebP compression quality range narrowed to 0.6–0.95** (was 0.1–1.0). The new bounds exclude impractically low quality values and cap the slider before lossless territory, where WebP files tend to grow larger than the originals.
+
 # 0.1.0
 
 ### Added

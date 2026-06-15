@@ -123,13 +123,13 @@ export const getSettings = () => [
     key: SETTING_IMAGE_QUALITY,
     options: {
       name: "WebP compression quality",
-      hint: "Quality of WebP re-encoding, from 0.1 (smallest file) to 1.0 (best quality). Only applies when image compression is enabled.",
+      hint: "Quality of WebP re-encoding, from 0.6 (smallest file) to 0.95 (best quality). Only applies when image compression is enabled.",
       type: Number,
       default: 0.85,
       scope: "world",
       config: true,
       restricted: true,
-      range: { min: 0.1, max: 1.0, step: 0.05 },
+      range: { min: 0.6, max: 0.95, step: 0.05 },
     },
   },
   {

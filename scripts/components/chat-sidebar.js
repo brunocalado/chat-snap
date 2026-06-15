@@ -3,9 +3,9 @@ import {
   getMediaQueue,
   processDropAndPaste,
   removeAllFromQueue,
-} from "../processors/FileProcessor.js";
-import { getUploadingStates } from "./Loader.js";
-import { getSetting } from "../utils/Settings.js";
+} from "../processors/file-processor.js";
+import { getUploadingStates } from "./loader.js";
+import { getSetting } from "../utils/settings.js";
 import { MODEL_EXTENSIONS } from "../constants.js";
 
 let hookIsHandlingTheMessage = false;

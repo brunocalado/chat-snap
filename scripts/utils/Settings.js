@@ -1,6 +1,6 @@
 import { MODULE_ID, SETTING_SETUP_COMPLETE, SETTING_USE_DATE_FOLDERS, SETTING_SHOW_DOWNLOAD_BUTTON, SETTING_MAX_FILE_SIZE_MB, SETTING_COMPRESS_IMAGES, SETTING_IMAGE_QUALITY, SETTING_STORAGE_LAST_CHECK_BYTES, SETTING_STORAGE_LAST_CHECK_DATE } from "../constants.js";
-import { ORIGIN_FOLDER } from "./Utils.js";
-import { StorageDialog } from "../storage/StorageDialog.js";
+import { ORIGIN_FOLDER } from "./utils.js";
+import { StorageDialog } from "../storage/storage-dialog.js";
 
 /**
  * Resolve the active FilePicker implementation so host environments (e.g. The Forge) can

@@ -1,8 +1,8 @@
-import VideoPopout from "../share-media/VideoPopout.js";
-import PDFPopout from "../share-media/PDFPopout.js";
-import TextPopout from "../share-media/TextPopout.js";
-import ModelPopout from "../share-media/ModelPopout.js";
-import { getSetting } from "../utils/Settings.js";
+import VideoPopout from "../share-media/video-popout.js";
+import PDFPopout from "../share-media/pdf-popout.js";
+import TextPopout from "../share-media/text-popout.js";
+import ModelPopout from "../share-media/model-popout.js";
+import { getSetting } from "../utils/settings.js";
 import { SETTING_SHOW_DOWNLOAD_BUTTON } from "../constants.js";
 
 const ImagePopout = foundry.applications.apps.ImagePopout;

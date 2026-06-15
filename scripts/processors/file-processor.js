@@ -1,7 +1,7 @@
-import { ORIGIN_FOLDER, randomString, userCanUpload } from "../utils/Utils.js";
+import { ORIGIN_FOLDER, randomString, userCanUpload } from "../utils/utils.js";
 import { htmlToElement } from "../helpers.js";
-import { anchorUploadArea } from "../components/UploadArea.js";
-import { getSetting, createUploadFolder } from "../utils/Settings.js";
+import { anchorUploadArea } from "../components/upload-area.js";
+import { getSetting, createUploadFolder } from "../utils/settings.js";
 import { MODULE_ID, SETTING_USE_DATE_FOLDERS, SETTING_MAX_FILE_SIZE_MB, SETTING_COMPRESS_IMAGES, SETTING_IMAGE_QUALITY, MODEL_EXTENSIONS } from "../constants.js";
 
 const RESTRICTED_DOMAINS = ["static.wikia"];

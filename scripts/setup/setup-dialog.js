@@ -1,5 +1,5 @@
 import { MODULE_ID, SETTING_SETUP_COMPLETE } from "../constants.js";
-import { setSetting } from "../utils/Settings.js";
+import { setSetting } from "../utils/settings.js";
 
 /**
  * First-run dialog that prompts the GM to grant file-upload permissions to Player and/or

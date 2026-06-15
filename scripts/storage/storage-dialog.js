@@ -4,8 +4,8 @@ import {
   SETTING_STORAGE_LAST_CHECK_BYTES,
   SETTING_STORAGE_LAST_CHECK_DATE,
 } from "../constants.js";
-import { getSetting, setSetting } from "../utils/Settings.js";
-import { calculateFolderSize } from "../utils/Utils.js";
+import { getSetting, setSetting } from "../utils/settings.js";
+import { calculateFolderSize } from "../utils/utils.js";
 
 /**
  * Settings dialog for storage management. Lets the GM configure the max file size,

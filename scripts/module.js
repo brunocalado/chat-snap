@@ -1,7 +1,7 @@
-import { initUploadArea } from "./components/UploadArea.js";
-import { initChatSidebar } from "./components/ChatSidebar.js";
-import { initChatMessage } from "./components/ChatMessage.js";
-import { createUploadFolder, getSettings, registerSetting, getSetting, setSetting, registerStorageMenu } from "./utils/Settings.js";
+import { initUploadArea } from "./components/upload-area.js";
+import { initChatSidebar } from "./components/chat-sidebar.js";
+import { initChatMessage } from "./components/chat-message.js";
+import { createUploadFolder, getSettings, registerSetting, getSetting, setSetting, registerStorageMenu } from "./utils/settings.js";
 import { SetupDialog } from "./setup/setup-dialog.js";
 import { MODULE_ID, SETTING_SETUP_COMPLETE } from "./constants.js";
 

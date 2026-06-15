@@ -1,6 +1,6 @@
 import { MODULE_ID } from "../constants.js";
 import { getVideoType, isVideo } from "../lib/lib.js";
-import { getSetting } from "../utils/Settings.js";
+import { getSetting } from "../utils/settings.js";
 
 /**
  * Extends the core ImagePopout so it can also display videos in the lightbox frame.

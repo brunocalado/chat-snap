@@ -1,6 +1,6 @@
 import { MODULE_ID } from "../constants.js";
 import { getVideoType } from "../lib/lib.js";
-import { getSetting } from "../utils/Settings.js";
+import { getSetting } from "../utils/settings.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 

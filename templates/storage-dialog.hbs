@@ -23,6 +23,24 @@
         {{/if}}
       </span>
     </div>
+    <p class="hint">
+      This reflects the total size of files physically stored on the server in the upload folder.
+      Clearing the chat log does <strong>not</strong> delete these files — they remain on disk until
+      removed manually via the Foundry file browser or your hosting control panel.
+    </p>
+  </div>
+
+  <div class="storage-section">
+    <h3>Chat Log</h3>
+    <p class="chat-log-stat">
+      <i class="fa-solid fa-comments"></i>
+      <strong>{{chatMessageCount}}</strong> messages &nbsp;·&nbsp; ~<strong>{{chatSizeLabel}}</strong> in memory
+    </p>
+    <p class="hint">
+      The entire chat log is sent to every player each time they join the session. More messages
+      means higher memory usage and longer connection times for everyone. If loading feels slow,
+      consider clearing old messages via Foundry's built-in chat controls.
+    </p>
   </div>
 
   <div class="form-footer flexrow">

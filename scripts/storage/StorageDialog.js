@@ -31,17 +31,23 @@ export class StorageDialog extends foundry.applications.api.HandlebarsApplicatio
   };
 
   /**
-   * Build template context from persisted settings.
+   * Build template context from persisted settings and live chat log stats.
    * @param {object} _options  Render options passed by the framework.
-   * @returns {Promise<{maxFileSizeMb: number, lastCheckLabel: string|null, lastCheckDate: string|null}>}
+   * @returns {Promise<object>}
    */
   async _prepareContext(_options) {
     const lastBytes = getSetting(SETTING_STORAGE_LAST_CHECK_BYTES);
     const lastDate  = getSetting(SETTING_STORAGE_LAST_CHECK_DATE);
+
+    const messages  = game.messages.contents;
+    const chatBytes = new TextEncoder().encode(JSON.stringify(messages)).byteLength;
+
     return {
-      maxFileSizeMb:  getSetting(SETTING_MAX_FILE_SIZE_MB),
-      lastCheckLabel: lastBytes > 0 ? _formatBytes(lastBytes) : null,
-      lastCheckDate:  lastDate || null,
+      maxFileSizeMb:      getSetting(SETTING_MAX_FILE_SIZE_MB),
+      lastCheckLabel:     lastBytes > 0 ? _formatBytes(lastBytes) : null,
+      lastCheckDate:      lastDate || null,
+      chatMessageCount:   messages.length,
+      chatSizeLabel:      _formatBytes(chatBytes),
     };
   }
 

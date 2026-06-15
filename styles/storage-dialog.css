@@ -12,6 +12,14 @@
     }
   }
 
+  .chat-log-stat {
+    margin: 0 0 0.4rem;
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-13);
+
+    i { margin-right: 0.3rem; }
+  }
+
   .storage-usage-row {
     align-items: center;
     gap: 0.75rem;

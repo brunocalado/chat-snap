@@ -1,3 +1,11 @@
+# 0.1.2
+
+### Added
+- **Chat Log stats in the Storage dialog.** A new *Chat Log* section shows the current message count and estimated in-memory size of the chat log (~bytes of JSON sent to every player on session join). Includes an explanatory note about the performance impact of large chat logs and how to clear them via Foundry's native controls.
+
+### Changed
+- **Storage Usage section now includes an explanatory note** clarifying that the displayed size reflects files physically stored on the server, and that clearing the chat log does not delete uploaded files — they must be removed manually via the Foundry file browser or hosting control panel.
+
 # 0.1.1
 
 ### Changed

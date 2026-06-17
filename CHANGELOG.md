@@ -1,3 +1,7 @@
+# 0.1.3
+
+Windows naming bug fixed
+
 # 0.1.2
 
 ### Added

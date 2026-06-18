@@ -8,10 +8,26 @@ import { SETTING_SHOW_DOWNLOAD_BUTTON } from "../constants.js";
 const ImagePopout = foundry.applications.apps.ImagePopout;
 
 /**
+ * Return true when src is an absolute URL pointing to a different origin than the Foundry host.
+ * Relative paths and same-origin absolute URLs (locally uploaded files) return false.
+ * @param {string} src
+ * @returns {boolean}
+ */
+const isExternalUrl = (src) => {
+  try {
+    return new URL(src).origin !== window.location.origin;
+  } catch {
+    return false;
+  }
+};
+
+/**
  * Inject a download anchor into a `.chat-snap-hint` element and apply the appropriate
  * flex-layout modifier class. Stops click propagation so parent popout handlers don't fire.
+ * External URLs (not yet mirrored to the server) render an "Open" button that opens in a
+ * new tab; same-origin URLs render a "Download" button that saves the file locally.
  * @param {HTMLElement} hintEl  The hint paragraph to inject the button into.
- * @param {string} src  The asset URL to download.
+ * @param {string} src  The asset URL.
  * @param {boolean} [downloadOnly=false]  True when the hint has no existing text (audio).
  * @returns {void}
  */
@@ -20,8 +36,16 @@ const injectDownloadButton = (hintEl, src, downloadOnly = false) => {
   const btn = document.createElement("a");
   btn.className = "chat-snap-download-btn";
   btn.href = src;
-  btn.setAttribute("download", src.split("/").pop().split("?")[0] || "");
-  btn.innerHTML = '<i class="fas fa-download"></i> Download';
+
+  if (isExternalUrl(src)) {
+    btn.setAttribute("target", "_blank");
+    btn.setAttribute("rel", "noopener noreferrer");
+    btn.innerHTML = '<i class="fas fa-external-link-alt"></i> Open';
+  } else {
+    btn.setAttribute("download", src.split("/").pop().split("?")[0] || "");
+    btn.innerHTML = '<i class="fas fa-download"></i> Download';
+  }
+
   // Prevent the click from bubbling to parent popout handlers (critical for .chat-snap-pdf-item).
   btn.addEventListener("click", (evt) => evt.stopPropagation());
   hintEl.appendChild(btn);

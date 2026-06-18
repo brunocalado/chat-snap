@@ -611,6 +611,50 @@ export const eventDataContainsMedia = (eventData) => {
 };
 
 /**
+ * Silently attempt to fetch an external URL and mirror it to the Foundry server.
+ * Runs entirely in the background — never throws, never blocks the caller.
+ * On success, mutates saveValue.imageSrc in-place so any subsequent message send
+ * picks up the locally-hosted copy. Skips immediately when the current user lacks
+ * upload permission or when CORS blocks the fetch.
+ * @param {{imageSrc: string, id: string, name?: string}} saveValue
+ * @returns {void}
+ */
+const backgroundUploadExternalUrl = (saveValue) => {
+  if (!userCanUpload()) return;
+
+  (async () => {
+    try {
+      const response = await fetch(saveValue.imageSrc, { mode: "cors" });
+      if (!response.ok) return;
+
+      const blob = await response.blob();
+      if (!blob.size) return;
+
+      const urlPath = new URL(saveValue.imageSrc).pathname;
+      let filename = urlPath.split("/").pop().split("?")[0];
+      if (!filename) {
+        const ext = blob.type.split("/")[1]?.split(";")[0] ?? "bin";
+        filename = `${saveValue.id}.${ext}`;
+      }
+
+      const compressEnabled = getSetting(SETTING_COMPRESS_IMAGES);
+      let file = new File([blob], filename, { type: blob.type || "application/octet-stream" });
+      if (compressEnabled && isCompressibleImage(file)) {
+        file = await compressImageToWebp(file, getSetting(SETTING_IMAGE_QUALITY));
+      }
+
+      const uploadSaveValue = { id: saveValue.id, imageSrc: saveValue.imageSrc, file, type: file.type, name: file.name };
+      const serverPath = await uploadFile(uploadSaveValue);
+      if (serverPath && serverPath !== saveValue.imageSrc) {
+        saveValue.imageSrc = serverPath;
+      }
+    } catch {
+      // CORS blocked, network error, or upload failed — keep the external URL silently.
+    }
+  })();
+};
+
+/**
  * Queue media from a paste or drop: prefer image URLs in the payload, otherwise read files.
  * @param {DataTransfer} eventData  The clipboardData or dataTransfer payload.
  * @returns {Promise<void>}
@@ -622,6 +666,7 @@ export const processDropAndPaste = async (eventData) => {
     for (let i = 0; i < urls.length; i++) {
       const saveValue = { imageSrc: urls[i], id: randomString() };
       await addMediaToQueue(saveValue);
+      backgroundUploadExternalUrl(saveValue);
     }
   };
 
@@ -634,6 +679,7 @@ export const processDropAndPaste = async (eventData) => {
     for (const url of plainUrls) {
       const saveValue = { imageSrc: url, id: randomString(), name: filename };
       await addMediaToQueue(saveValue);
+      backgroundUploadExternalUrl(saveValue);
     }
     return;
   }

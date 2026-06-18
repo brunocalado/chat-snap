@@ -1,3 +1,11 @@
+# 0.1.4
+
+### Added
+- **Background mirroring of external media URLs.** When a link is pasted into chat, the module immediately shows a preview using the external URL (no delay). In the background it silently attempts a CORS fetch of that URL and, if allowed by the remote server, uploads the file to the Foundry server — exactly like a drag-and-drop file. If the upload completes before the message is sent the message stores the local copy; if CORS blocks the request or the upload fails the external URL is used as before.
+
+### Changed
+- **Download button adapts to URL origin.** The button below a media item now reads **Download** (with a save-file icon) when the file is hosted on the Foundry server, and **Open** (with an external-link icon) when the file is still an external URL. The "Open" button opens the link in a new browser tab instead of navigating the current page, so Foundry stays open.
+
 # 0.1.3
 
 Windows naming bug fixed

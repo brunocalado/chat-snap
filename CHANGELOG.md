@@ -1,3 +1,8 @@
+# 0.1.5
+
+### Added
+- **Drag-to-canvas handle for media assets.** Images, videos, and audio files in chat messages now show a grip icon to the right of the Download button (GM only). Grab the icon and drag it onto an active scene to place the asset directly on the canvas: images and videos are placed as **Tiles**, audio files as **AmbientSounds** at the drop position. The handle is hidden for externally-hosted URLs and does not appear when no scene is open.
+
 # 0.1.4
 
 ### Added

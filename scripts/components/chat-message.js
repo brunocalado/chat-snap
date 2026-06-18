@@ -22,16 +22,16 @@ const isExternalUrl = (src) => {
 };
 
 /**
- * Inject a download anchor into a `.chat-snap-hint` element and apply the appropriate
- * flex-layout modifier class. Stops click propagation so parent popout handlers don't fire.
- * External URLs (not yet mirrored to the server) render an "Open" button that opens in a
- * new tab; same-origin URLs render a "Download" button that saves the file locally.
+ * Inject a download anchor (and optional canvas drag handle) into a `.chat-snap-hint` element
+ * and apply the appropriate flex-layout modifier class. Stops click propagation so parent popout
+ * handlers don't fire. External URLs render an "Open" button; same-origin URLs render "Download".
  * @param {HTMLElement} hintEl  The hint paragraph to inject the button into.
  * @param {string} src  The asset URL.
  * @param {boolean} [downloadOnly=false]  True when the hint has no existing text (audio).
+ * @param {"tile"|"sound"|null} [canvasDropType=null]  Canvas drop target type; null disables the drag handle.
  * @returns {void}
  */
-const injectDownloadButton = (hintEl, src, downloadOnly = false) => {
+const injectDownloadButton = (hintEl, src, downloadOnly = false, canvasDropType = null) => {
   hintEl.classList.add(downloadOnly ? "chat-snap-hint--download-only" : "chat-snap-hint--with-download");
   const btn = document.createElement("a");
   btn.className = "chat-snap-download-btn";
@@ -48,7 +48,36 @@ const injectDownloadButton = (hintEl, src, downloadOnly = false) => {
 
   // Prevent the click from bubbling to parent popout handlers (critical for .chat-snap-pdf-item).
   btn.addEventListener("click", (evt) => evt.stopPropagation());
-  hintEl.appendChild(btn);
+
+  const showDrag = canvasDropType !== null && !isExternalUrl(src) && game.user.isGM;
+
+  if (showDrag) {
+    const handle = document.createElement("span");
+    handle.className = "chat-snap-drag-handle";
+    handle.setAttribute("title", "Drag to canvas");
+    handle.setAttribute("draggable", "true");
+    handle.innerHTML = '<i class="fas fa-grip-vertical"></i>';
+
+    handle.addEventListener("dragstart", (evt) => {
+      if (!canvas?.ready) {
+        ui.notifications?.warn("Chat Snap: Open a scene before dragging to the canvas.");
+        evt.preventDefault();
+        return;
+      }
+      const payload = canvasDropType === "tile"
+        ? JSON.stringify({ type: "Tile", texture: { src } })
+        : JSON.stringify({ type: "PlaylistSound", data: { path: src, name: src.split("/").pop().split("?")[0] || "sound", volume: 0.5 } });
+      evt.dataTransfer.setData("text/plain", payload);
+    });
+
+    const actions = document.createElement("span");
+    actions.className = "chat-snap-hint-actions";
+    actions.appendChild(btn);
+    actions.appendChild(handle);
+    hintEl.appendChild(actions);
+  } else {
+    hintEl.appendChild(btn);
+  }
 };
 
 /**
@@ -63,13 +92,13 @@ const addDownloadButtons = (html) => {
   html.querySelectorAll(".chat-snap-media-item img").forEach((img) => {
     const hint = img.closest(".chat-snap-media-item")?.querySelector(".chat-snap-hint");
     if (!hint) return;
-    injectDownloadButton(hint, img.dataset.src || img.src);
+    injectDownloadButton(hint, img.dataset.src || img.src, false, "tile");
   });
 
   html.querySelectorAll(".chat-snap-media-item video").forEach((video) => {
     const hint = video.closest(".chat-snap-media-item")?.querySelector(".chat-snap-hint");
     if (!hint) return;
-    injectDownloadButton(hint, video.dataset.src || video.src);
+    injectDownloadButton(hint, video.dataset.src || video.src, false, "tile");
   });
 
   html.querySelectorAll(".chat-snap-media-item audio").forEach((audio) => {
@@ -84,7 +113,7 @@ const addDownloadButtons = (html) => {
       hint.className = "chat-snap-hint";
       item.appendChild(hint);
     }
-    injectDownloadButton(hint, src, !hasText);
+    injectDownloadButton(hint, src, !hasText, "sound");
   });
 
   html.querySelectorAll(".chat-snap-pdf-item[data-pdf-src]").forEach((el) => {

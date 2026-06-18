@@ -1,15 +1,40 @@
-<div class="chat-snap-actor-picker-list">
-  {{#if actors.length}}
-    {{#each actors}}
-    <button class="chat-snap-actor-entry" type="button" data-action="pickActor" data-actor-id="{{id}}">
-      <img src="{{img}}" alt="{{name}}" class="chat-snap-actor-thumb">
-      <div class="chat-snap-actor-info">
-        <span class="chat-snap-actor-name">{{name}}</span>
-        <span class="chat-snap-actor-user">{{userName}}</span>
+<div class="chat-snap-actor-picker-root">
+  <div class="chat-snap-picker-header">
+    <p class="chat-snap-picker-description">
+      Select an actor to replace their current portrait with the chat image.
+      The arrow shows the change: current portrait on the left, new image on the right.
+    </p>
+  </div>
+
+  <div class="chat-snap-actor-picker-list">
+    {{#if actors.length}}
+      {{#each actors}}
+      <div class="chat-snap-actor-entry">
+        <div class="chat-snap-portrait-pair">
+          <div class="chat-snap-portrait-slot">
+            <img src="{{img}}" alt="Current portrait" class="chat-snap-actor-thumb chat-snap-thumb-current">
+            <span class="chat-snap-portrait-label">Current</span>
+          </div>
+          <i class="fas fa-long-arrow-alt-right chat-snap-arrow"></i>
+          <div class="chat-snap-portrait-slot">
+            <img src="{{../imageUrl}}" alt="New portrait" class="chat-snap-actor-thumb chat-snap-thumb-new">
+            <span class="chat-snap-portrait-label chat-snap-portrait-label--new">New</span>
+          </div>
+        </div>
+        <div class="chat-snap-actor-info">
+          <span class="chat-snap-actor-name">{{name}}</span>
+          <span class="chat-snap-actor-user">{{userName}}</span>
+        </div>
+        <button class="chat-snap-set-portrait-btn" type="button" data-action="pickActor" data-actor-id="{{id}}">
+          <i class="fas fa-check"></i> Set Portrait
+        </button>
       </div>
-    </button>
-    {{/each}}
-  {{else}}
-    <p class="chat-snap-no-actors">No actors are linked to any user.</p>
-  {{/if}}
+      {{/each}}
+    {{else}}
+      <p class="chat-snap-no-actors">
+        <i class="fas fa-users-slash"></i>
+        No actors are linked to any user.
+      </p>
+    {{/if}}
+  </div>
 </div>

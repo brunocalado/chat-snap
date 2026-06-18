@@ -1,11 +1,23 @@
 .chat-snap {
   &.chat-snap-actor-picker {
+    .chat-snap-picker-header {
+      padding: 10px 14px 10px;
+      border-bottom: 1px solid var(--color-border-light, rgba(255, 255, 255, 0.1));
+    }
+
+    .chat-snap-picker-description {
+      margin: 0;
+      font-size: 0.82em;
+      line-height: 1.5;
+      color: var(--color-text-secondary);
+    }
+
     .chat-snap-actor-picker-list {
       display: flex;
       flex-direction: column;
-      gap: 4px;
-      padding: 8px;
-      max-height: 400px;
+      gap: 6px;
+      padding: 10px;
+      max-height: 340px;
       overflow-y: auto;
     }
 
@@ -13,50 +25,133 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      padding: 6px 8px;
-      border: 1px solid var(--color-border-light);
-      border-radius: 4px;
-      background: transparent;
-      cursor: pointer;
-      width: 100%;
-      text-align: left;
+      padding: 8px 10px;
+      border: 1px solid var(--color-border-light, rgba(255, 255, 255, 0.1));
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.03);
+      transition: background 0.12s, border-color 0.12s;
 
       &:hover {
-        background: rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.07);
+        border-color: var(--color-accent, #5d49ff);
       }
     }
 
+    .chat-snap-portrait-pair {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-shrink: 0;
+    }
+
+    .chat-snap-portrait-slot {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+    }
+
     .chat-snap-actor-thumb {
-      width: 40px;
-      height: 40px;
+      width: 38px;
+      height: 38px;
       object-fit: cover;
-      border-radius: 50%;
+      border-radius: 4px;
+    }
+
+    .chat-snap-thumb-current {
+      border: 1px solid var(--color-border-light, rgba(255, 255, 255, 0.2));
+      opacity: 0.6;
+    }
+
+    .chat-snap-thumb-new {
+      border: 2px solid var(--color-accent, #5d49ff);
+    }
+
+    .chat-snap-portrait-label {
+      font-size: 0.6em;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--color-text-secondary);
+
+      &.chat-snap-portrait-label--new {
+        color: var(--color-accent, #5d49ff);
+        font-weight: 700;
+      }
+    }
+
+    .chat-snap-arrow {
+      font-size: 0.85em;
+      color: var(--color-text-secondary);
+      opacity: 0.5;
       flex-shrink: 0;
     }
 
     .chat-snap-actor-info {
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 3px;
+      flex: 1;
+      min-width: 0;
+      text-align: left;
     }
 
     .chat-snap-actor-name {
-      font-weight: bold;
+      font-size: 0.88em;
+      font-weight: 600;
       color: var(--color-text-primary);
-      font-size: 0.95em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .chat-snap-actor-user {
-      font-size: 0.8em;
+      font-size: 0.75em;
       color: var(--color-text-secondary);
-      opacity: 0.75;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .chat-snap-set-portrait-btn {
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 11px;
+      border: none;
+      border-radius: 4px;
+      background: var(--color-accent, #5d49ff);
+      color: #fff;
+      font-size: 0.78em;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: filter 0.1s;
+
+      &:hover {
+        filter: brightness(1.18);
+      }
+
+      &:active {
+        filter: brightness(0.88);
+      }
     }
 
     .chat-snap-no-actors {
-      padding: 12px 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      padding: 24px 16px;
       color: var(--color-text-secondary);
       text-align: center;
       font-style: italic;
+
+      & > i {
+        font-size: 1.6em;
+        opacity: 0.4;
+      }
     }
   }
 }

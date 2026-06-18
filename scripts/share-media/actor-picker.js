@@ -14,7 +14,7 @@ export default class ActorPickerApp extends HandlebarsApplicationMixin(Applicati
   static DEFAULT_OPTIONS = {
     classes: [MODULE_ID, "chat-snap-actor-picker"],
     window: { title: "Set Actor Portrait" },
-    position: { width: 320, height: "auto" },
+    position: { width: 420, height: "auto" },
     actions: {
       pickActor: ActorPickerApp.prototype._onPickActor,
     },
@@ -33,10 +33,11 @@ export default class ActorPickerApp extends HandlebarsApplicationMixin(Applicati
   }
 
   /**
-   * Collect all users who have a linked player-character actor.
+   * Collect all users who have a linked player-character actor and expose the target image URL
+   * so the template can render the before/after portrait comparison per row.
    * @override
    * @param {object} _options
-   * @returns {Promise<{actors: Array<{id: string, name: string, img: string, userName: string}>}>}
+   * @returns {Promise<{actors: Array<{id: string, name: string, img: string, userName: string}>, imageUrl: string}>}
    */
   async _prepareContext(_options) {
     const actors = game.users.contents
@@ -47,7 +48,7 @@ export default class ActorPickerApp extends HandlebarsApplicationMixin(Applicati
         img: u.character.img,
         userName: u.name,
       }));
-    return { actors };
+    return { actors, imageUrl: this.#imageUrl };
   }
 
   /**

@@ -1,0 +1,62 @@
+.chat-snap {
+  &.chat-snap-actor-picker {
+    .chat-snap-actor-picker-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 8px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .chat-snap-actor-entry {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 8px;
+      border: 1px solid var(--color-border-light);
+      border-radius: 4px;
+      background: transparent;
+      cursor: pointer;
+      width: 100%;
+      text-align: left;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.08);
+      }
+    }
+
+    .chat-snap-actor-thumb {
+      width: 40px;
+      height: 40px;
+      object-fit: cover;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .chat-snap-actor-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .chat-snap-actor-name {
+      font-weight: bold;
+      color: var(--color-text-primary);
+      font-size: 0.95em;
+    }
+
+    .chat-snap-actor-user {
+      font-size: 0.8em;
+      color: var(--color-text-secondary);
+      opacity: 0.75;
+    }
+
+    .chat-snap-no-actors {
+      padding: 12px 8px;
+      color: var(--color-text-secondary);
+      text-align: center;
+      font-style: italic;
+    }
+  }
+}

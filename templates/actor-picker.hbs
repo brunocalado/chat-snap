@@ -1,0 +1,15 @@
+<div class="chat-snap-actor-picker-list">
+  {{#if actors.length}}
+    {{#each actors}}
+    <button class="chat-snap-actor-entry" type="button" data-action="pickActor" data-actor-id="{{id}}">
+      <img src="{{img}}" alt="{{name}}" class="chat-snap-actor-thumb">
+      <div class="chat-snap-actor-info">
+        <span class="chat-snap-actor-name">{{name}}</span>
+        <span class="chat-snap-actor-user">{{userName}}</span>
+      </div>
+    </button>
+    {{/each}}
+  {{else}}
+    <p class="chat-snap-no-actors">No actors are linked to any user.</p>
+  {{/if}}
+</div>

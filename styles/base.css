@@ -135,6 +135,30 @@
       cursor: grabbing;
     }
   }
+
+  .chat-snap-copy-btn,
+  .chat-snap-actor-btn {
+    pointer-events: auto;
+    cursor: pointer;
+    font-style: normal;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--color-text-secondary, rgba(255, 255, 255, 0.6));
+    line-height: 1;
+    flex-shrink: 0;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: var(--color-text-primary, #fff);
+    }
+  }
 }
 
 #chat-snap-chat-upload-area {

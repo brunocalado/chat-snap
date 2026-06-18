@@ -2,6 +2,7 @@ import VideoPopout from "../share-media/video-popout.js";
 import PDFPopout from "../share-media/pdf-popout.js";
 import TextPopout from "../share-media/text-popout.js";
 import ModelPopout from "../share-media/model-popout.js";
+import ActorPickerApp from "../share-media/actor-picker.js";
 import { getSetting } from "../utils/settings.js";
 import { SETTING_SHOW_DOWNLOAD_BUTTON } from "../constants.js";
 
@@ -78,6 +79,72 @@ const injectDownloadButton = (hintEl, src, downloadOnly = false, canvasDropType 
   } else {
     hintEl.appendChild(btn);
   }
+};
+
+/** Image extensions for which the Copy Link and Set Actor Portrait buttons are shown. */
+const PORTRAIT_EXTENSIONS = /\.(webp|png|jpe?g)(\?.*)?$/i;
+
+/**
+ * Inject GM-only Copy Link and Set Actor Portrait buttons on image media items.
+ * Only images with a portrait-compatible extension (webp, png, jpg, jpeg) receive the buttons.
+ * Runs independently of the showDownloadButton setting.
+ * @param {HTMLElement} html  The rendered chat message element.
+ * @returns {void}
+ */
+const addGMButtons = (html) => {
+  if (!game.user.isGM) return;
+
+  html.querySelectorAll(".chat-snap-media-item img").forEach((img) => {
+    const src = img.dataset.src || img.src;
+    if (!PORTRAIT_EXTENSIONS.test(src)) return;
+
+    const mediaItem = img.closest(".chat-snap-media-item");
+    if (!mediaItem) return;
+
+    const hint = mediaItem.querySelector(".chat-snap-hint");
+    if (!hint) return;
+
+    // Ensure the hint uses flex layout so the actions bar renders beside the hint text.
+    if (!hint.classList.contains("chat-snap-hint--with-download") &&
+        !hint.classList.contains("chat-snap-hint--download-only")) {
+      hint.classList.add("chat-snap-hint--with-download");
+    }
+
+    // Find or create the inline actions wrapper (shared with download and drag buttons).
+    let actions = hint.querySelector(".chat-snap-hint-actions");
+    if (!actions) {
+      actions = document.createElement("span");
+      actions.className = "chat-snap-hint-actions";
+      hint.appendChild(actions);
+    }
+
+    const copyBtn = document.createElement("button");
+    copyBtn.type = "button";
+    copyBtn.className = "chat-snap-copy-btn";
+    copyBtn.setAttribute("data-tooltip", "Copy image link");
+    copyBtn.innerHTML = '<i class="fas fa-copy"></i>';
+    copyBtn.addEventListener("click", async (evt) => {
+      evt.stopPropagation();
+      try {
+        await navigator.clipboard.writeText(src);
+        ui.notifications.info("Chat Snap: Link copied to clipboard.");
+      } catch {
+        ui.notifications.warn("Chat Snap: Could not copy link to clipboard.");
+      }
+    });
+    actions.appendChild(copyBtn);
+
+    const actorBtn = document.createElement("button");
+    actorBtn.type = "button";
+    actorBtn.className = "chat-snap-actor-btn";
+    actorBtn.setAttribute("data-tooltip", "Set as actor portrait");
+    actorBtn.innerHTML = '<i class="fas fa-portrait"></i>';
+    actorBtn.addEventListener("click", (evt) => {
+      evt.stopPropagation();
+      new ActorPickerApp(src).render(true);
+    });
+    actions.appendChild(actorBtn);
+  });
 };
 
 /**
@@ -298,4 +365,5 @@ export const initChatMessage = (html) => {
   }
 
   if (getSetting(SETTING_SHOW_DOWNLOAD_BUTTON)) addDownloadButtons(html);
+  addGMButtons(html);
 };

@@ -1,3 +1,9 @@
+# 0.1.6
+
+### Added
+- **Copy Link button on chat images (GM only).** Images shared in chat (`.webp`, `.png`, `.jpg`, `.jpeg`) now show a small copy icon to the right of the download/drag buttons, visible only to the GM. Clicking it copies the image URL to the clipboard with a confirmation notification.
+- **Set Actor Portrait button on chat images (GM only).** Next to the copy button, a portrait icon opens a dialog listing all players' linked actors (those assigned as a user's Player Character in Foundry). Clicking an actor immediately updates its portrait to the shared image and closes the dialog. The button only appears for image formats (`.webp`, `.png`, `.jpg`, `.jpeg`) and both buttons are hidden entirely on audio, video, PDF, and other non-image media.
+
 # 0.1.5
 
 ### Added

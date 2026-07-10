@@ -132,6 +132,15 @@ Accessible via the **Configure** button in the module settings panel.
 
 ## Setup
 
+### Giving Players Permission to Post Media
+
+By default, only the GM can upload files to the server. The first time Chat Snap loads in your world, a setup dialog will appear and offer to grant the **Upload Files** permission to players automatically.
+
+If you skipped that step or want to change permissions later, go to:
+> **Game Settings → Configure Settings → Permissions → Upload Files**
+
+Check the roles you want to allow, then save.
+
 ### Installation
 
 1. Open Foundry VTT and go to **Add-on Modules**.
@@ -143,15 +152,6 @@ https://raw.githubusercontent.com/brunocalado/chat-snap/main/module.json
 ```
 
 4. Enable the module in your world via **Manage Modules**.
-
-### Giving Players Permission to Post Media
-
-By default, only the GM can upload files to the server. The first time Chat Snap loads in your world, a setup dialog will appear and offer to grant the **Upload Files** permission to players automatically.
-
-If you skipped that step or want to change permissions later, go to:
-> **Game Settings → Configure Settings → Permissions → Upload Files**
-
-Check the roles you want to allow, then save.
 
 ---
 

@@ -1,3 +1,8 @@
+# 0.1.7
+
+### Fixed
+- **"Disallowed extension" error when pasting a browser-copied image.** Some sites' "Copy image" puts a `data:` URI (instead of a real URL) in the clipboard's HTML payload. The background upload that mirrors pasted media to the Foundry server derived the filename by parsing that `data:` URI as if it were a normal path, producing a garbage name with no valid extension and triggering a rejected-upload error — even though the image itself pasted and displayed fine. The filename is now derived from the file's MIME type for `data:` URIs, so the background upload succeeds silently as intended.
+
 # 0.1.6
 
 ### Added

@@ -630,8 +630,11 @@ const backgroundUploadExternalUrl = (saveValue) => {
       const blob = await response.blob();
       if (!blob.size) return;
 
-      const urlPath = new URL(saveValue.imageSrc).pathname;
-      let filename = urlPath.split("/").pop().split("?")[0];
+      // data: URIs have no real path — new URL(...).pathname returns the whole base64 payload,
+      // and splitting that on "/" (part of base64's alphabet) yields a garbage filename with no
+      // valid extension. Skip straight to the blob.type-based fallback below for those.
+      const isDataUri = saveValue.imageSrc.startsWith("data:");
+      let filename = isDataUri ? "" : new URL(saveValue.imageSrc).pathname.split("/").pop().split("?")[0];
       if (!filename) {
         const ext = blob.type.split("/")[1]?.split(";")[0] ?? "bin";
         filename = `${saveValue.id}.${ext}`;

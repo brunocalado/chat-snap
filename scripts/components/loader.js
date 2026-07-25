@@ -8,12 +8,13 @@ const LOADING_CLASS = "chat-snap-loading";
 let activeOperations = 0;
 
 /**
- * Enable or disable the chat input while an upload is in flight.
- * @param {HTMLElement|null} chat  The chat input element (`<prose-mirror>`).
+ * Enable or disable the chat input while an upload is in flight. The host is re-queried from the
+ * live document on every call because Foundry relocates `#chat-message` when the sidebar collapses.
  * @param {boolean} enabled  Whether the input should accept text.
  * @returns {void}
  */
-const toggleChat = (chat, enabled) => {
+const toggleChat = (enabled) => {
+  const chat = document.querySelector("#chat-message");
   if (!chat) return;
   if (!enabled) {
     chat.setAttribute("disabled", "true");
@@ -41,22 +42,19 @@ const toggleLoadingBar = (visible) => {
  * Build the on/off controls that gate the chat input and toggle the loading bar during uploads.
  * Reference-counted: each `on()` must be paired with an `off()`; the bar hides only once the last
  * operation completes.
- * @param {HTMLElement} sidebar  The chat sidebar container.
  * @returns {{on: () => void, off: () => void}}
  */
-export const getUploadingStates = (sidebar) => {
-  const chat = sidebar.querySelector("#chat-message");
-
+export const getUploadingStates = () => {
   return {
     on() {
       activeOperations++;
-      toggleChat(chat, false);
+      toggleChat(false);
       toggleLoadingBar(true);
     },
     off() {
       activeOperations = Math.max(0, activeOperations - 1);
       if (activeOperations > 0) return;
-      toggleChat(chat, true);
+      toggleChat(true);
       toggleLoadingBar(false);
     },
   };

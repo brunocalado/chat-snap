@@ -152,10 +152,9 @@ const messageTemplate = (mediaQueue) => {
 /**
  * `preCreateChatMessage` hook handler: if media is queued, fold it into the message being sent
  * (so typed notes and queued media ship together) and clear the queue.
- * @param {HTMLElement} sidebar
  * @returns {(chatMessage: ChatMessage, userOptions: object, messageOptions: object) => void}
  */
-export const preCreateChatMessageHandler = (sidebar) => (chatMessage, userOptions, messageOptions) => {
+export const preCreateChatMessageHandler = () => (chatMessage, userOptions, messageOptions) => {
   if (eventIsHandlingTheMessage) return;
 
   hookIsHandlingTheMessage = true;
@@ -165,7 +164,7 @@ export const preCreateChatMessageHandler = (sidebar) => (chatMessage, userOption
     return;
   }
 
-  const uploadState = getUploadingStates(sidebar);
+  const uploadState = getUploadingStates();
   uploadState.on();
 
   const content = `${messageTemplate(mediaQueue)}<div class="chat-snap-notes">${chatMessage.content}</div>`;
@@ -180,14 +179,13 @@ export const preCreateChatMessageHandler = (sidebar) => (chatMessage, userOption
 
 /**
  * Send queued media as its own message when Enter is pressed on an otherwise empty input.
- * @param {HTMLElement} sidebar
  * @returns {(evt: KeyboardEvent) => Promise<void>}
  */
-const emptyChatEventHandler = (sidebar) => async (evt) => {
+const emptyChatEventHandler = () => async (evt) => {
   if (hookIsHandlingTheMessage || (evt.code !== "Enter" && evt.code !== "NumpadEnter") || evt.shiftKey) return;
   eventIsHandlingTheMessage = true;
 
-  const uploadState = getUploadingStates(sidebar);
+  const uploadState = getUploadingStates();
   const mediaQueue = getMediaQueue();
   if (!mediaQueue.length) {
     eventIsHandlingTheMessage = false;
@@ -212,10 +210,9 @@ const emptyChatEventHandler = (sidebar) => async (evt) => {
  * When the payload holds media, we suppress the event synchronously and in the capture phase so the
  * editor never embeds it too — otherwise the image is queued by us AND inlined by the editor,
  * producing the message twice. Text-only pastes fall through untouched so normal editing still works.
- * @param {HTMLElement} sidebar
  * @returns {(evt: ClipboardEvent|DragEvent) => Promise<void>}
  */
-const pastAndDropEventHandler = (sidebar) => async (evt) => {
+const pastAndDropEventHandler = () => async (evt) => {
   if (processingDropOrPaste) return;
 
   const eventData = evt.clipboardData || evt.dataTransfer;
@@ -227,7 +224,7 @@ const pastAndDropEventHandler = (sidebar) => async (evt) => {
 
   // Show the loading bar the instant media is dropped/pasted — before files are read or uploaded —
   // so the indicator reflects the start of the operation rather than its tail end.
-  const uploadState = getUploadingStates(sidebar);
+  const uploadState = getUploadingStates();
   uploadState.on();
 
   processingDropOrPaste = true;
@@ -240,30 +237,46 @@ const pastAndDropEventHandler = (sidebar) => async (evt) => {
 };
 
 /**
+ * Chat input elements already wired up, so re-running init after a chat re-render never stacks
+ * duplicate listeners on the same element.
+ * @type {WeakSet<HTMLElement>}
+ */
+const wiredInputs = new WeakSet();
+
+/** Guard so the global `preCreateChatMessage` hook is registered exactly once. @type {boolean} */
+let messageHookRegistered = false;
+
+/**
  * Attach the chat-input listeners that power queued-media sending and drag/drop/paste capture.
- * Called from the `ready` hook via module.js.
- * @param {HTMLElement} sidebar  The chat sidebar container.
+ * Driven by the `renderChatInput` hook (see module.js) rather than `ready`: the chat log renders
+ * asynchronously and `#chat-message` frequently does not exist yet when `ready` fires, which used
+ * to leave the module silently inert for the whole session.
+ * @param {HTMLElement} inputElement  The live `<prose-mirror id="chat-message">` element.
  * @returns {void}
  */
-export const initChatSidebar = (sidebar) => {
-  Hooks.on("preCreateChatMessage", preCreateChatMessageHandler(sidebar));
+export const initChatSidebar = (inputElement) => {
+  if (!messageHookRegistered) {
+    Hooks.on("preCreateChatMessage", preCreateChatMessageHandler());
+    messageHookRegistered = true;
+  }
 
-  const textArea = sidebar.querySelector("#chat-message");
-  if (!textArea) {
+  if (!inputElement) {
     console.warn("Chat Snap: #chat-message not found; drag/drop disabled");
     return;
   }
+  if (wiredInputs.has(inputElement)) return;
+  wiredInputs.add(inputElement);
 
-  textArea.addEventListener("keyup", emptyChatEventHandler(sidebar));
+  inputElement.addEventListener("keyup", emptyChatEventHandler());
   // Capture phase: fire before the ProseMirror editor's own paste/drop handlers so stopPropagation
   // can prevent the editor from also consuming the same media (see pastAndDropEventHandler).
-  textArea.addEventListener("paste", pastAndDropEventHandler(sidebar), { capture: true });
-  textArea.addEventListener("drop", pastAndDropEventHandler(sidebar), { capture: true });
-  textArea.addEventListener("dragover", (evt) => {
+  inputElement.addEventListener("paste", pastAndDropEventHandler(), { capture: true });
+  inputElement.addEventListener("drop", pastAndDropEventHandler(), { capture: true });
+  inputElement.addEventListener("dragover", (evt) => {
     evt.preventDefault();
     evt.stopPropagation();
   });
-  textArea.addEventListener("dragenter", (evt) => {
+  inputElement.addEventListener("dragenter", (evt) => {
     evt.preventDefault();
     evt.stopPropagation();
   });

@@ -1,31 +1,55 @@
 {
-    "id": "chat-snap",
-    "title": "Chat Snap",
-    
-    "description": "Extends chat functionality with image and video support.",
-    
-    "version": "0.1.7",
-    
-    "authors": [
-        {
-        "name": "Mestre Digital",
-        "url": "http://youtube.com/@mestredigital",
-        "flags": {}
-        }
-    ],
-    
-    "socket": true,
-    
-    "esmodules": ["scripts/module.js"],
-    "styles": ["styles/base.css", "styles/media-popout.css", "styles/video-popout.css", "styles/setup-dialog.css", "styles/storage-dialog.css", "styles/pdf-popout.css", "styles/text-popout.css", "styles/model-popout.css", "styles/actor-picker.css"],
-    
-    "compatibility": {
-        "minimum": 14,
-        "verified": 14
+  "id": "chat-snap",
+  "title": "Chat Snap",
+  "description": "Extends chat functionality with image and video support.",
+  "version": "0.1.8",
+  "authors": [
+    {
+      "name": "Mestre Digital",
+      "url": "http://youtube.com/@mestredigital",
+      "flags": {}
+    }
+  ],
+  "socket": true,
+  "esmodules": [
+    "scripts/module.js"
+  ],
+  "styles": [
+    {
+      "src": "styles/base.css"
     },
-    
+    {
+      "src": "styles/media-popout.css"
+    },
+    {
+      "src": "styles/video-popout.css"
+    },
+    {
+      "src": "styles/setup-dialog.css"
+    },
+    {
+      "src": "styles/storage-dialog.css"
+    },
+    {
+      "src": "styles/pdf-popout.css"
+    },
+    {
+      "src": "styles/text-popout.css"
+    },
+    {
+      "src": "styles/model-popout.css"
+    },
+    {
+      "src": "styles/actor-picker.css"
+    }
+  ],
+  "compatibility": {
+    "minimum": "14",
+    "verified": "14",
+    "maximum": "14"
+  },
   "url": "https://github.com/brunocalado/chat-snap",
   "manifest": "https://raw.githubusercontent.com/brunocalado/chat-snap/main/module.json",
-  "download": "https://codeload.github.com/brunocalado/chat-snap/zip/main"
-
+  "download": "https://codeload.github.com/brunocalado/chat-snap/zip/main",
+  "flags": {}
 }

@@ -47,10 +47,16 @@ export const anchorUploadArea = () => {
 /**
  * Create the preview strip, dock it above the chat input, and keep it docked when the sidebar is
  * collapsed/expanded (which relocates the chat input).
- * Called from the `ready` hook via module.js.
+ * Called from the `renderChatInput` hook via module.js, so it must be safe to call repeatedly:
+ * once the strip exists it is only re-anchored, never rebuilt (which would drop queued previews).
  * @returns {void}
  */
 export const initUploadArea = () => {
+  if (document.querySelector("#chat-snap-chat-upload-area")) {
+    anchorUploadArea();
+    return;
+  }
+
   const uploadArea = createUploadArea();
   document.querySelector("#chat-message")?.before(uploadArea);
 

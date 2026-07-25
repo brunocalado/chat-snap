@@ -11,20 +11,75 @@ const getFilePicker = () =>
   foundry.applications.apps.FilePicker.implementation ?? foundry.applications.apps.FilePicker;
 
 /**
- * Ensure the upload destination folder exists, creating it if necessary.
- * Called from the `init` hook and when the upload location setting changes.
- * @param {string} [uploadLocation]  Override for the configured upload location.
- * @returns {Promise<void>}
+ * Folder paths already ensured (or being ensured) during this session, keyed by path.
+ * Pasting several files at once fires one uploadFile() per file; without this cache they would
+ * all race on the same createDirectory call and all but one would fail with EEXIST.
+ * @type {Map<string, Promise<boolean>>}
  */
-export const createUploadFolder = async (uploadLocation = "") => {
-  const location = uploadLocation || getSetting("uploadLocation");
+const ensuredFolders = new Map();
+
+/**
+ * Create every missing segment of a folder path, one level at a time, so nested destinations
+ * (e.g. "uploaded-chat-snap/2026-07-25") work even when the parent does not exist yet.
+ * Never throws — callers decide what to do with a `false` result.
+ * @param {string} location  Server-relative folder path, already trimmed of surrounding slashes.
+ * @returns {Promise<boolean>}  True when the full path exists after this call.
+ */
+const createFolderChain = async (location) => {
   const FilePicker = getFilePicker();
-  try {
-    const folderLocation = await FilePicker.browse(ORIGIN_FOLDER, location);
-    if (folderLocation.target === ".") await FilePicker.createDirectory(ORIGIN_FOLDER, location, {});
-  } catch (e) {
-    await FilePicker.createDirectory(ORIGIN_FOLDER, location, {});
+  let current = "";
+
+  for (const segment of location.split("/").filter(Boolean)) {
+    current = current ? `${current}/${segment}` : segment;
+    try {
+      const folderLocation = await FilePicker.browse(ORIGIN_FOLDER, current);
+      // Most hosts reject the browse for a missing directory, but some (S3, The Forge) resolve
+      // it with target "." instead — treat that as "missing" rather than as an existing folder.
+      if (folderLocation?.target !== ".") continue;
+    } catch {
+      // Directory does not exist yet — fall through and create it.
+    }
+
+    try {
+      await FilePicker.createDirectory(ORIGIN_FOLDER, current, {});
+    } catch (e) {
+      // EEXIST means a parallel request won the race, which is the outcome we wanted anyway.
+      if (!/EEXIST|already exists/i.test(e?.message ?? "")) {
+        console.warn(`Chat Snap: Could not create upload folder "${current}":`, e);
+        return false;
+      }
+    }
   }
+
+  return true;
+};
+
+/**
+ * Ensure the upload destination folder exists, creating it (and any missing parent) if necessary.
+ * Requires FILES_BROWSE/FILES_UPLOAD, so only GMs call this directly; players route the request
+ * through the `chat-snap.ensureFolder` query registered in module.js.
+ * Called from the `ready` hook, when the upload location setting changes, and before each upload.
+ * @param {string} [uploadLocation]  Override for the configured upload location.
+ * @param {object} [options]
+ * @param {boolean} [options.force=false]  Re-check the folder even if it was ensured earlier this
+ *                                         session, for when it was removed on disk in the meantime.
+ * @returns {Promise<boolean>}  True when the folder exists and is ready to receive uploads.
+ */
+export const createUploadFolder = async (uploadLocation = "", { force = false } = {}) => {
+  const location = (uploadLocation || getSetting("uploadLocation")).replace(/^\/+|\/+$/g, "");
+  if (!location) return false;
+  if (force) ensuredFolders.delete(location);
+
+  const pending = ensuredFolders.get(location);
+  if (pending) return pending;
+
+  const request = createFolderChain(location);
+  ensuredFolders.set(location, request);
+
+  const created = await request;
+  // Only cache successes: a failed attempt must be retried on the next upload.
+  if (!created) ensuredFolders.delete(location);
+  return created;
 };
 
 export const setSetting = (key, value) => {

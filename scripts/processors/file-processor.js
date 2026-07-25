@@ -270,29 +270,110 @@ const addEventToRemoveButton = (removeButton, saveValue, uploadArea) => {
 };
 
 /**
- * Ensure the target upload folder exists. GMs call Settings.createUploadFolder directly;
- * non-GM users (who lack FILES_BROWSE) ask the active GM via a socket query instead.
- * Falls through silently when no GM is available so the upload can still be attempted
- * (the folder may already exist from an earlier upload that session).
- * @param {string} folderPath  Server-relative folder path to ensure.
- * @returns {Promise<void>}
+ * Folder paths a GM has already confirmed for this (non-GM) client, keyed by path.
+ * Mirrors the cache in Settings.createUploadFolder so a multi-file paste sends one query
+ * instead of one per file.
+ * @type {Map<string, Promise<boolean>>}
  */
-const ensureFolder = async (folderPath) => {
-  if (game.user.isGM) {
-    await createUploadFolder(folderPath);
-    return;
-  }
+const gmEnsuredFolders = new Map();
+
+/**
+ * Ask an active GM to create the folder on this player's behalf. Never throws.
+ * @param {string} folderPath  Server-relative folder path to ensure.
+ * @param {boolean} [force]    Ask the GM to re-check even if their client ensured it earlier.
+ * @returns {Promise<boolean>}  True when a GM confirmed the folder exists.
+ */
+const requestFolderFromGM = async (folderPath, force) => {
   // Queries target a specific User document; find any active GM to handle the request.
   const gm = game.users.find(u => u.isGM && u.active);
   if (!gm) {
-    console.warn("Chat Snap: No active GM found to create upload folder; proceeding without it.");
-    return;
+    console.warn("Chat Snap: No active GM found to create the upload folder.");
+    return false;
+  }
+  // User#query throws outright when the querying user lacks QUERY_USER; check first so a
+  // restricted world degrades quietly to the fallback folder.
+  if (!game.user.hasPermission("QUERY_USER")) {
+    console.warn("Chat Snap: This user lacks the QUERY_USER permission needed to request a folder.");
+    return false;
   }
   try {
-    await gm.query(`${MODULE_ID}.ensureFolder`, { folderPath });
+    return await gm.query(`${MODULE_ID}.ensureFolder`, { folderPath, force }, { timeout: 10000 }) === true;
   } catch (e) {
-    // Query timed out or GM rejected; proceed and let the upload surface any real error.
     console.warn("Chat Snap: Could not ensure upload folder via GM query:", e);
+    return false;
+  }
+};
+
+/**
+ * Ensure the target upload folder exists. GMs call Settings.createUploadFolder directly;
+ * non-GM users (who lack FILES_BROWSE) ask the active GM via a query instead.
+ * @param {string} folderPath  Server-relative folder path to ensure.
+ * @param {object} [options]
+ * @param {boolean} [options.force=false]  Re-check a folder already ensured this session.
+ * @returns {Promise<boolean>}  True when the folder is known to exist.
+ */
+const ensureFolder = async (folderPath, { force = false } = {}) => {
+  if (game.user.isGM) return createUploadFolder(folderPath, { force });
+
+  if (force) gmEnsuredFolders.delete(folderPath);
+  const pending = gmEnsuredFolders.get(folderPath);
+  if (pending) return pending;
+
+  const request = requestFolderFromGM(folderPath, force);
+  gmEnsuredFolders.set(folderPath, request);
+
+  const created = await request;
+  // Only cache successes: a failed attempt must be retried on the next upload (the GM may
+  // have been offline at the time).
+  if (!created) gmEnsuredFolders.delete(folderPath);
+  return created;
+};
+
+/**
+ * Server-side upload failures that Chat Snap resolves on its own (by falling back to the base
+ * upload folder), so they must not reach the player as a red notification.
+ * @type {RegExp}
+ */
+const RECOVERABLE_UPLOAD_ERRORS = /does not exist|EEXIST|already exists/i;
+
+/**
+ * Number of uploads currently in flight. The notification filter stays installed until the last
+ * one finishes, so parallel uploads (a multi-file paste) cannot uninstall it from under each other.
+ * @type {number}
+ */
+let uploadsInFlight = 0;
+
+/**
+ * Upload a file without letting a recoverable server error raise a UI notification.
+ * FilePicker.upload reports `response.error` through ui.notifications.error() unconditionally —
+ * the `notify: false` option does not cover that branch in v14 — so matching messages are routed
+ * to the console for the duration of the request. Any other error still notifies normally.
+ * @param {string} target  Server-relative destination folder.
+ * @param {File} file      The file to upload.
+ * @returns {Promise<object|false|undefined>}  The FilePicker response.
+ */
+const uploadQuietly = async (target, file) => {
+  const FilePicker = getFilePicker();
+  const notifications = ui.notifications;
+
+  if (uploadsInFlight === 0) {
+    const original = notifications.error.bind(notifications);
+    // Own property shadowing the prototype method; removed once the last upload settles.
+    notifications.error = (message, options) => {
+      if (typeof message === "string" && RECOVERABLE_UPLOAD_ERRORS.test(message)) {
+        console.warn("Chat Snap: recoverable upload error:", message);
+        return null;
+      }
+      return original(message, options);
+    };
+  }
+  uploadsInFlight++;
+
+  try {
+    return await FilePicker.upload(ORIGIN_FOLDER, target, file, {}, { notify: false });
+  } finally {
+    uploadsInFlight--;
+    if (uploadsInFlight === 0) delete notifications.error;
   }
 };
 
@@ -348,15 +429,31 @@ const uploadFile = async (saveValue) => {
     let effectiveLocation = uploadLocation;
     if (useDateFolders) {
       const dateFolder = new Date().toISOString().slice(0, 10);
-      effectiveLocation = `${uploadLocation}/${dateFolder}`;
+      const datedLocation = `${uploadLocation}/${dateFolder}`;
+      // Only use the date subfolder once it is confirmed to exist. When it cannot be created
+      // (no GM online, restricted permissions, host quirks) the upload still succeeds in the
+      // base folder rather than failing with "target directory does not exist".
+      if (await ensureFolder(datedLocation)) effectiveLocation = datedLocation;
+    }
+    if (effectiveLocation === uploadLocation) await ensureFolder(uploadLocation);
+
+    let fileLocation = await uploadQuietly(effectiveLocation, fileToUpload);
+
+    // A folder ensured earlier this session is cached as existing, so a folder deleted from disk
+    // in the meantime is only detected here. Re-create the whole chain, bypassing the caches,
+    // and retry the same destination so files keep landing in the date subfolder.
+    if (!fileLocation?.path) {
+      await ensureFolder(effectiveLocation, { force: true });
+      fileLocation = await uploadQuietly(effectiveLocation, fileToUpload);
     }
 
-    await ensureFolder(effectiveLocation);
+    // Last resort: the base folder, so a subfolder that cannot be created never costs the upload.
+    if (!fileLocation?.path && effectiveLocation !== uploadLocation) {
+      await ensureFolder(uploadLocation, { force: true });
+      fileLocation = await uploadQuietly(uploadLocation, fileToUpload);
+    }
 
-    const FilePicker = getFilePicker();
-    const fileLocation = await FilePicker.upload(ORIGIN_FOLDER, effectiveLocation, fileToUpload, {}, { notify: false });
-
-    if (!fileLocation || !fileLocation.path) return saveValue.imageSrc;
+    if (!fileLocation?.path) return saveValue.imageSrc;
     return fileLocation.path;
   } catch (e) {
     console.error("Chat Snap: Error uploading file:", e);

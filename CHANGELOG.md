@@ -1,3 +1,10 @@
+# 0.1.8
+
+### Fixed
+- **Module silently inactive for the whole session on some clients.** Chat Snap wired itself to the chat input during the `ready` hook, but Foundry renders the chat log asynchronously and does not wait for it before firing `ready`. On slower clients (larger scenes, longer chat history) `#chat-message` did not exist yet, so the module bailed out and never attached its paste/drop handlers: pasted images were swallowed by the core editor, embedded straight into the message with no upload, no folder, and none of Chat Snap's media controls. Setup now runs off Foundry's own `renderChatInput` signal, so it happens whenever the input is actually rendered — and again whenever it moves between the sidebar and the collapsed chat popout.
+- **Uploads fell back to the root folder after the upload folder was deleted mid-session.** Folders confirmed once are remembered for the rest of the session, so a folder deleted from disk afterwards was only noticed when the upload itself failed — and the recovery dropped the file into the root upload folder. The recovery now re-creates the full folder chain first and retries the original destination, so files keep landing in the daily subfolder; the root folder is only used if that still fails.
+- **"Target directory ... does not exist" error when a player pasted media.** Players cannot create folders themselves, so they ask an active GM to create the daily upload subfolder through a query. The query handler read its payload from the wrong argument (Foundry v14 passes the data first, the context second), so the GM always fell back to the base folder and the daily subfolder was never created — every pasted file then failed with a red error notification. The handler now receives the requested path correctly, missing parent folders are created level by level, simultaneous requests from a multi-file paste are coalesced into one, and if the subfolder still cannot be created the upload quietly falls back to the base folder instead of surfacing an error.
+
 # 0.1.7
 
 ### Fixed

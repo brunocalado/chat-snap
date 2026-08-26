@@ -2,7 +2,7 @@
   "id": "chat-snap",
   "title": "Chat Snap",
   "description": "Extends chat functionality with image and video support.",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "authors": [
     {
       "name": "Mestre Digital",

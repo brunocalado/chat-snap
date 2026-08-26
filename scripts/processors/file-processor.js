@@ -344,6 +344,13 @@ const RECOVERABLE_UPLOAD_ERRORS = /does not exist|EEXIST|already exists/i;
 let uploadsInFlight = 0;
 
 /**
+ * Whatever CONFIG.SUPPRESS_MEDIA_OPTIMIZER held before Chat Snap raised it, restored once the last
+ * upload settles so the flag is handed back exactly as it was found.
+ * @type {*}
+ */
+let priorOptimizerSuppression;
+
+/**
  * Upload a file without letting a recoverable server error raise a UI notification.
  * FilePicker.upload reports `response.error` through ui.notifications.error() unconditionally —
  * the `notify: false` option does not cover that branch in v14 — so matching messages are routed
@@ -357,6 +364,14 @@ const uploadQuietly = async (target, file) => {
   const notifications = ui.notifications;
 
   if (uploadsInFlight === 0) {
+    // Media Optimizer registers a libWrapper on FilePicker.upload that swaps the file for a
+    // converted one (a GIF becomes .webm, a PNG becomes .webp). Chat Snap has already decided the
+    // format by this point and stores the queued item's MIME type alongside the path, so a silent
+    // conversion posts a video path inside an <img>. CONFIG.SUPPRESS_MEDIA_OPTIMIZER is that
+    // module's own opt-out, checked at the top of its wrapper.
+    priorOptimizerSuppression = CONFIG.SUPPRESS_MEDIA_OPTIMIZER;
+    CONFIG.SUPPRESS_MEDIA_OPTIMIZER = true;
+
     const original = notifications.error.bind(notifications);
     // Own property shadowing the prototype method; removed once the last upload settles.
     notifications.error = (message, options) => {
@@ -373,7 +388,40 @@ const uploadQuietly = async (target, file) => {
     return await FilePicker.upload(ORIGIN_FOLDER, target, file, {}, { notify: false });
   } finally {
     uploadsInFlight--;
-    if (uploadsInFlight === 0) delete notifications.error;
+    if (uploadsInFlight === 0) {
+      delete notifications.error;
+      CONFIG.SUPPRESS_MEDIA_OPTIMIZER = priorOptimizerSuppression;
+    }
+  }
+};
+
+/**
+ * Realign a queued item with the file the server actually stored.
+ *
+ * A libWrapper on FilePicker.upload (Media Optimizer, or a host that re-encodes on upload) can
+ * replace the file mid-flight, so the stored format may differ from the one submitted while the
+ * queued item still carries the original MIME type — which is what renders a converted `.webm`
+ * inside an `<img>`. A matching extension, the normal case for every Chat Snap upload including
+ * its own WebP re-encode, leaves the item untouched.
+ * @param {{type?: string, name?: string}} saveValue  Mutated in place only when the format changed.
+ * @param {string} sentName    Filename handed to FilePicker.upload.
+ * @param {string} storedPath  Server path reported back by FilePicker.upload.
+ */
+const reconcileUploadedFormat = (saveValue, sentName, storedPath) => {
+  const sentExt = fileExtension({ name: sentName });
+  const storedExt = fileExtension({ name: storedPath.split("?")[0] });
+  if (!storedExt || storedExt === sentExt) return;
+
+  console.warn(
+    `Chat Snap: upload was stored as "${storedExt}" instead of the submitted "${sentExt}" — another ` +
+      "module rewrote the file. Adjusting the queued item so it renders in the right element."
+  );
+
+  // Empty rather than stale when the extension is unknown, so the name-based checks in
+  // getMediaType() decide instead of a MIME type that no longer describes the file.
+  saveValue.type = foundry.CONST.UPLOADABLE_FILE_EXTENSIONS[storedExt.slice(1)] ?? "";
+  if (saveValue.name) {
+    saveValue.name = `${saveValue.name.substring(0, saveValue.name.lastIndexOf("."))}${storedExt}`;
   }
 };
 
@@ -454,6 +502,8 @@ const uploadFile = async (saveValue) => {
     }
 
     if (!fileLocation?.path) return saveValue.imageSrc;
+
+    reconcileUploadedFormat(saveValue, newName, fileLocation.path);
     return fileLocation.path;
   } catch (e) {
     console.error("Chat Snap: Error uploading file:", e);
@@ -747,6 +797,10 @@ const backgroundUploadExternalUrl = (saveValue) => {
       const serverPath = await uploadFile(uploadSaveValue);
       if (serverPath && serverPath !== saveValue.imageSrc) {
         saveValue.imageSrc = serverPath;
+        // uploadFile() realigns the copy with whatever the server actually stored; carry that back
+        // so the queued item's type never contradicts the path it now points at.
+        saveValue.type = uploadSaveValue.type;
+        saveValue.name = uploadSaveValue.name;
       }
     } catch {
       // CORS blocked, network error, or upload failed — keep the external URL silently.

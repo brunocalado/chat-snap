@@ -1,3 +1,10 @@
+# 0.1.9
+
+- https://github.com/brunocalado/chat-snap/issues/2
+
+### Fixed
+- **Broken image in chat when a GIF was dropped with Media Optimizer installed.** Media Optimizer hooks Foundry's upload function itself, so every file Chat Snap sent to the server passed through it and was re-encoded on the way: an animated GIF was stored as a `.webm` video (or, with video optimization turned off, as a still `.webp` that lost the animation). Chat Snap had already classified the file as an image before the upload started, so the posted message pointed a picture element at a video file and showed "Unable to load image". This was never a conflict over the chat area — the two modules do not touch each other's drag and drop — which is why turning Media Optimizer off appeared to fix it. Chat Snap now tells Media Optimizer to leave its uploads alone, using that module's own opt-out, so dropped files reach the server exactly as they left your computer. Other media was affected the same way and is covered too: videos, audio, and images shared through chat are no longer re-encoded behind Chat Snap's back. Media Optimizer keeps working normally everywhere else — the file picker, the canvas, and its own tools are untouched — and Chat Snap's built-in WebP compression is unchanged. As a safety net, if any other module or hosting provider still swaps a file during upload, Chat Snap now notices the format that was actually stored and displays it with the right player instead of a broken image.
+
 # 0.1.8
 
 ### Fixed

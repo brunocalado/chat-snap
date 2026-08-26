@@ -1,3 +1,10 @@
+# 0.2.0
+
+### Added
+- **Animated GIFs are re-encoded to silent WebM video.** A GIF dropped into chat is now converted to VP9 WebM before upload — typically around a quarter of the original size — and posts as a looping, muted video that behaves the same as the GIF did. On by default, with a **Convert animated GIFs to WebM** toggle and a **GIF to WebM quality** slider (0.05–0.25, default 0.10) in module settings. Encoding runs in real time, so a five-second GIF takes about five seconds and the chat input shows its loading bar throughout. GIFs are deliberately left untouched whenever the conversion cannot be trusted to be an improvement: any GIF with transparent areas (video has no alpha channel and those areas would turn black), single-frame GIFs, animations longer than 30 seconds, results that do not actually come out smaller, a conversion cancelled by switching browser tabs, a browser stall that makes the capture miss too much of the animation, and browsers without VP9 recording support. Encoding uses MediaRecorder rather than WebCodecs specifically so it also works when Foundry is served over plain HTTP on a LAN address, where the WebCodecs encoder does not exist.
+
+
+
 # 0.1.9
 
 - https://github.com/brunocalado/chat-snap/issues/2

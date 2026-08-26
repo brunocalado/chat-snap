@@ -1,3 +1,11 @@
+/*!
+ * Chat Snap
+ * Copyright (c) 2026 https://github.com/brunocalado
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3.
+ */
+
 import VideoPopout from "../share-media/video-popout.js";
 import PDFPopout from "../share-media/pdf-popout.js";
 import TextPopout from "../share-media/text-popout.js";

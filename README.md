@@ -43,7 +43,14 @@ Every media item in chat shows an action link below it. For files hosted on your
 A dedicated **Storage & Upload** dialog (accessible from the module settings panel) lets the GM configure the file size limit and check how much disk space the upload folder is using. A **Chat Log** section shows the current message count and estimated in-memory size of the chat log — useful for keeping session join times fast. Click **Check Usage** to scan the upload folder; the result and date are saved and shown on the next visit.
 
 ### Image Compression
-BMP, JPEG, JPG, and PNG uploads are automatically re-encoded to WebP to save server storage — on by default, and toggleable in module settings. A **WebP compression quality** slider (0.6–0.95, default 0.85) tunes the balance between file size and image quality. Compression runs before the file-size check, so an oversized image that fits once re-encoded is still accepted; it's only rejected if the compressed version still exceeds the limit. If re-encoding wouldn't make a file smaller, the original is kept untouched. Animated and vector formats (GIF, APNG, SVG, WebP, AVIF) and TIFF are never altered.
+BMP, JPEG, JPG, and PNG uploads are automatically re-encoded to WebP to save server storage — on by default, and toggleable in module settings. A **WebP compression quality** slider (0.6–0.95, default 0.85) tunes the balance between file size and image quality. Compression runs before the file-size check, so an oversized image that fits once re-encoded is still accepted; it's only rejected if the compressed version still exceeds the limit. If re-encoding wouldn't make a file smaller, the original is kept untouched. Vector and other animated formats (APNG, SVG, WebP, AVIF) and TIFF are never altered; animated GIFs have their own path, below.
+
+### Animated GIFs to Video
+Animated GIFs dropped into chat are re-encoded as silent VP9 WebM — typically a quarter of the original size — and post as looping, muted videos that behave just like the GIF did. On by default, toggleable in module settings, with a **GIF to WebM quality** slider (0.05–0.25, default 0.10) trading file size against detail.
+
+A GIF is left exactly as it is whenever the conversion can't be trusted to be an improvement: **any GIF with transparent areas** (video has no alpha channel, so those would turn black), single-frame GIFs, animations longer than 30 seconds, and any result that doesn't actually come out smaller. If the browser stalls mid-encode and the capture misses too much of the animation, the attempt is discarded rather than posted as a broken clip. Browsers without VP9 recording support skip the conversion entirely.
+
+Encoding happens in real time, so a five-second GIF takes about five seconds — the chat input shows its loading bar throughout. Switching away to another tab mid-conversion cancels it and keeps the original GIF, since a background tab stops animating.
 
 ### Audio Playback
 Audio files embed directly in chat with native browser playback controls. Playback is client-side only — each player controls their own volume and timing independently, so pressing play only affects that client.

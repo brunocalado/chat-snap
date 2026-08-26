@@ -1,4 +1,12 @@
-import { MODULE_ID, SETTING_SETUP_COMPLETE, SETTING_USE_DATE_FOLDERS, SETTING_SHOW_DOWNLOAD_BUTTON, SETTING_MAX_FILE_SIZE_MB, SETTING_COMPRESS_IMAGES, SETTING_IMAGE_QUALITY, SETTING_STORAGE_LAST_CHECK_BYTES, SETTING_STORAGE_LAST_CHECK_DATE } from "../constants.js";
+/*!
+ * Chat Snap
+ * Copyright (c) 2026 https://github.com/brunocalado
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3.
+ */
+
+import { MODULE_ID, SETTING_SETUP_COMPLETE, SETTING_USE_DATE_FOLDERS, SETTING_SHOW_DOWNLOAD_BUTTON, SETTING_MAX_FILE_SIZE_MB, SETTING_COMPRESS_IMAGES, SETTING_IMAGE_QUALITY, SETTING_CONVERT_GIFS, SETTING_GIF_QUALITY, SETTING_STORAGE_LAST_CHECK_BYTES, SETTING_STORAGE_LAST_CHECK_DATE } from "../constants.js";
 import { ORIGIN_FOLDER } from "./utils.js";
 import { StorageDialog } from "../storage/storage-dialog.js";
 
@@ -185,6 +193,31 @@ export const getSettings = () => [
       config: true,
       restricted: true,
       range: { min: 0.6, max: 0.95, step: 0.05 },
+    },
+  },
+  {
+    key: SETTING_CONVERT_GIFS,
+    options: {
+      name: "Convert animated GIFs to WebM",
+      hint: "When enabled, animated GIFs dropped into chat are re-encoded as silent VP9 video, which is typically a fraction of the original size. They post as looping muted videos instead of images. GIFs with transparent areas are always left untouched.",
+      type: Boolean,
+      default: true,
+      scope: "world",
+      config: true,
+      restricted: true,
+    },
+  },
+  {
+    key: SETTING_GIF_QUALITY,
+    options: {
+      name: "GIF to WebM quality",
+      hint: "Detail kept when re-encoding GIFs, from 0.05 (smallest file) to 0.25 (best quality). Only applies when GIF conversion is enabled.",
+      type: Number,
+      default: 0.1,
+      scope: "world",
+      config: true,
+      restricted: true,
+      range: { min: 0.05, max: 0.25, step: 0.05 },
     },
   },
   {

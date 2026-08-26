@@ -1,3 +1,11 @@
+/*!
+ * Chat Snap
+ * Copyright (c) 2026 https://github.com/brunocalado
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3.
+ */
+
 export const ORIGIN_FOLDER = "data";
 export const randomString = () =>
     Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);

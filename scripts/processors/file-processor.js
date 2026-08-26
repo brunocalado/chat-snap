@@ -1,8 +1,17 @@
+/*!
+ * Chat Snap
+ * Copyright (c) 2026 https://github.com/brunocalado
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3.
+ */
+
 import { ORIGIN_FOLDER, randomString, userCanUpload } from "../utils/utils.js";
 import { htmlToElement } from "../helpers.js";
 import { anchorUploadArea } from "../components/upload-area.js";
 import { getSetting, createUploadFolder } from "../utils/settings.js";
-import { MODULE_ID, SETTING_USE_DATE_FOLDERS, SETTING_MAX_FILE_SIZE_MB, SETTING_COMPRESS_IMAGES, SETTING_IMAGE_QUALITY, MODEL_EXTENSIONS } from "../constants.js";
+import { MODULE_ID, SETTING_USE_DATE_FOLDERS, SETTING_MAX_FILE_SIZE_MB, SETTING_COMPRESS_IMAGES, SETTING_IMAGE_QUALITY, SETTING_CONVERT_GIFS, SETTING_GIF_QUALITY, MODEL_EXTENSIONS } from "../constants.js";
+import { convertGifToWebm } from "./gif-to-webm.js";
 
 const RESTRICTED_DOMAINS = ["static.wikia"];
 
@@ -43,6 +52,9 @@ const isFileImage = (file) => IMAGE_EXTENSIONS.includes(fileExtension(file));
 
 /** @param {File|DataTransferItem} file @returns {boolean} */
 const isCompressibleImage = (file) => COMPRESSIBLE_IMAGE_EXTENSIONS.includes(fileExtension(file));
+
+/** @param {File|DataTransferItem} file @returns {boolean} */
+const isFileGif = (file) => fileExtension(file) === ".gif";
 
 /** @param {File|DataTransferItem} file @returns {boolean} */
 const isFileVideo = (file) => VIDEO_EXTENSIONS.includes(fileExtension(file));
@@ -631,6 +643,26 @@ const compressImageToWebp = (file, quality) =>
   });
 
 /**
+ * Apply whichever re-encode suits this file, or none. Both paths return the original file when the
+ * conversion would not help, so the caller can use the result unconditionally.
+ *
+ * The two branches are mutually exclusive by extension: COMPRESSIBLE_IMAGE_EXTENSIONS deliberately
+ * excludes `.gif` because canvas can only re-encode a single frame, which is exactly why animated
+ * GIFs need the video path instead.
+ * @param {File} file
+ * @returns {Promise<File>}  The re-encoded file, or the original.
+ */
+const reencodeForUpload = async (file) => {
+  if (getSetting(SETTING_COMPRESS_IMAGES) && isCompressibleImage(file)) {
+    return compressImageToWebp(file, getSetting(SETTING_IMAGE_QUALITY));
+  }
+  if (getSetting(SETTING_CONVERT_GIFS) && isFileGif(file)) {
+    return convertGifToWebm(file, getSetting(SETTING_GIF_QUALITY));
+  }
+  return file;
+};
+
+/**
  * Read and queue a list of local files dragged onto the chat input. Awaits every read so the
  * surrounding loading-bar guard stays active until all files are processed. Eligible images are
  * compressed to WebP BEFORE the size-limit check, so an oversized original that fits once re-encoded
@@ -640,7 +672,6 @@ const compressImageToWebp = (file, quality) =>
  */
 export const processFiles = async (files) => {
   const maxBytes = getSetting(SETTING_MAX_FILE_SIZE_MB) * 1024 * 1024;
-  const compressEnabled = getSetting(SETTING_COMPRESS_IMAGES);
   const reads = [];
   for (const file of files) {
     if (!isAllowedFile(file)) {
@@ -648,9 +679,7 @@ export const processFiles = async (files) => {
       continue;
     }
 
-    const processedFile = compressEnabled && isCompressibleImage(file)
-      ? await compressImageToWebp(file, getSetting(SETTING_IMAGE_QUALITY))
-      : file;
+    const processedFile = await reencodeForUpload(file);
 
     // GMs bypass the file size limit entirely.
     if (!game.user.isGM && processedFile.size > maxBytes) {
@@ -787,11 +816,9 @@ const backgroundUploadExternalUrl = (saveValue) => {
         filename = `${saveValue.id}.${ext}`;
       }
 
-      const compressEnabled = getSetting(SETTING_COMPRESS_IMAGES);
-      let file = new File([blob], filename, { type: blob.type || "application/octet-stream" });
-      if (compressEnabled && isCompressibleImage(file)) {
-        file = await compressImageToWebp(file, getSetting(SETTING_IMAGE_QUALITY));
-      }
+      const file = await reencodeForUpload(
+        new File([blob], filename, { type: blob.type || "application/octet-stream" })
+      );
 
       const uploadSaveValue = { id: saveValue.id, imageSrc: saveValue.imageSrc, file, type: file.type, name: file.name };
       const serverPath = await uploadFile(uploadSaveValue);

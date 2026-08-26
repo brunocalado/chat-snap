@@ -1,3 +1,11 @@
+/*!
+ * Chat Snap
+ * Copyright (c) 2026 https://github.com/brunocalado
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3.
+ */
+
 /**
  * Build a single detached DOM element from an HTML string. Replaces the former jQuery
  * `$(htmlString)` element factory now that the module is vanilla-JS only.
